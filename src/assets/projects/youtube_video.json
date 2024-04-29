@@ -1,0 +1,17 @@
+[
+  {
+    "title": "Distributed Particle Simulator",
+    "description": "One of my favorite applications built in C++ and Visual Studio 2022. The app is intended to be run by multiple PCs connected to same LAN, master server can track the movements of clients and compute/send the next position of particles to them.",
+    "videoUrl": "https://www.youtube.com/embed/mqaKxWhLnpY"
+  },
+  { 
+    "title": "Piano Accompaniment Performance: One Voice",
+    "description": "Vocal and piano instruments played by me. Roughly 2 months was spent to master the entire score. 16th notes accompanied by key change was the hardest yet satisfying moment during the performance.",
+    "videoUrl": "https://www.youtube.com/embed/t8R8cAa7w5w"
+  },
+  {
+    "title": "Flipnote Animation: Touhou Project",
+    "description": "This animation was the turning point before I stopped drawing. Even without technical skills, I only relied on sketching to make 50 seconds short animation.",
+    "videoUrl": "https://www.youtube.com/embed/ACgwWbUgy2E"
+  }
+]

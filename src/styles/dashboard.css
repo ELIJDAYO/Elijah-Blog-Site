@@ -1,0 +1,36 @@
+.dashboard-container {
+  background-color: rgba(13, 25, 88, 0.801);
+  border-color: rgba(91, 235, 55, 0.651);
+  border-width: 10px;
+  border-radius: 28px;
+  padding: 20px;
+  color: rgb(189, 189, 189);
+  margin-bottom: 100px;
+}
+
+.pagination-icons {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pagination-icon {
+  font-size: 24px;
+  margin: 0 10px;
+  cursor: pointer;
+  color: white;
+}
+
+.custom-text {
+  color: rgb(98, 167, 115); 
+}
+
+Form.Text{
+  margin-bottom:  20vh;
+}
+
+img{
+  margin-top: 30px;
+  max-width: 400px;
+  max-height: 400px;
+}

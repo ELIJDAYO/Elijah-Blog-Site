@@ -1,0 +1,23 @@
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .error-content {
+    text-align: center;
+    color: #dce3ea;
+
+  }
+  
+  .error-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+
+  }
+  
+  .error-content p {
+    font-size: 1.5rem;
+    color: #c8cdd2;
+  }

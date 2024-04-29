@@ -1,0 +1,9 @@
+.grid-row-text{
+    color: rgb(159, 188, 183);
+    font-family: Arial, sans-serif; /* Use Arial or any sans-serif font for readability */
+}
+
+.info {
+    border-left: 3px solid rgb(207, 215, 213);
+    
+  }

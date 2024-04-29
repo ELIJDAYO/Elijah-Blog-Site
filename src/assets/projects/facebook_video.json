@@ -1,0 +1,6 @@
+[{
+    "title": "Arduino I2C Music Speaker",
+    "description": "Because of so much I/O devices, I needed 1 additional controller to accomodate all components (LEDs, LCD display, Sound speaker). To run 2 controllers at the same time, I implemented master-slave design and kept on doing the trial & error until I got it right.",
+    "videoUrl": "https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Felijah.dayon%2Fvideos%2F3258579654366601%2F&show_text=false&width=560&t=0"
+}
+]

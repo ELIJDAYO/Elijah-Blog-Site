@@ -1,0 +1,23 @@
+.skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    color: rgb(4, 37, 121);
+    font-size: large;
+  }
+  
+  .skill {
+    background-color: #ababab;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    font-weight: bold; 
+    letter-spacing: 0.5px;
+    transition: background-color 0.3s; /* Add transition for smooth color change */
+  
+  }
+  
+  .skill:hover {
+    background-color: #575757; /* Change color on hover */
+  }

@@ -1,0 +1,20 @@
+[
+    {
+      "title": "Emotion Recognition in Text Dialogue Data",
+      "description": "Training ML model to classify emotion in utterance. I leveraged the context of a dialogue and speakers to enrich the data representation, and implmented techniques to efficiently train the model.",
+      "image": "erc.png",
+      "webLink": "https://github.com/ELIJDAYO/ER_GAT"
+    },
+    {
+      "title": "Joli: Full-Stack Ecommerce Website",
+      "description": "A simpler copy of Amazon. Users can register/login, add/remove items from cart, order via paypal, and track order. While admin has dashboard that tracks order and visualize monthly sales.",
+      "image": "joli.png",
+      "webLink": "https://github.com/ELIJDAYO/joli"
+    },
+    {
+        "title": "JPG/PNG Files to PDF Converter",
+        "description": "Streamline application that can convert 300 or more JPG/PNG files into 1 PDF, making images into portable file and saves cost by not buying paid services.\n\n(No plans of publishing the source code)",
+        "image": "pdf-converter.png",
+        "webLink": "https://github.com/ELIJDAYO/"
+      }
+  ]

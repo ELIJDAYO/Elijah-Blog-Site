@@ -1,0 +1,19 @@
+.contact-form-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+}
+
+.contact-form {
+    width: 100%;
+    max-width: 600px !important;
+    padding: 20px;
+    background: #0a261bde;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #d1d0d0;
+  }
+  
+
+  
