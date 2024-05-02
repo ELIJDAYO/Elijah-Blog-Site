@@ -6,7 +6,7 @@
   }
   
   .skill {
-    background-color: #ababab;
+    background-color: #ffffff;
     border: 1px solid #000000;
     border-radius: 4px;
     padding: 8px 12px;
@@ -19,5 +19,5 @@
   }
   
   .skill:hover {
-    background-color: #575757; /* Change color on hover */
+    background-color: #bb77cf; /* Change color on hover */
   }

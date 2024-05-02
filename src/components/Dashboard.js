@@ -1,31 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Form,
-  Button,
-  Tab,
-  Tabs,
-  Card,
-  DropdownButton,
-  Dropdown,
-} from 'react-bootstrap';
+import { Form, Button, Tab, Tabs, Card } from 'react-bootstrap';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import '../styles/dashboard.css';
 import { toast } from 'react-toastify';
-
+import MessageModal from '../modal/MessageModal';
+import BlogModal from '../modal/BlogModal';
+import { BsThreeDotsVertical, BsTrash } from 'react-icons/bs';
+import Tag from './Tag';
 const Dashboard = ({ token }) => {
   const [activePageBlog, setActivePageBlog] = useState(1);
   const [activePageMessage, setActivePageMessage] = useState(1);
   const blogsPerPage = 6;
   const messagesPerPage = 10;
   const [loading, setLoading] = useState(true);
+  const [blogs, setBlogs] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [totalPagesBlog, setTotalPagesBlog] = useState(1);
+  const [totalPagesMessage, setTotalPagesMessage] = useState(1);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     tags: [],
     media: null, // To store media content
   });
-  const [selectedTab, setSelectedTab] = useState(sessionStorage.getItem('tab') || 'view');
+  const [selectedTab] = useState(sessionStorage.getItem('tab') || 'view');
+  const [selectedBlog, setSelectedBlog] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const navigate = useNavigate();
   useEffect(() => {
     const authenticateUser = async () => {
@@ -36,13 +37,13 @@ const Dashboard = ({ token }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({last_token}),
+          body: JSON.stringify({ last_token }),
         });
 
         if (response.ok) {
           setLoading(false);
         } else {
-          alert('Session expired');
+          // alert('Session expired');
           sessionStorage.removeItem('token');
           navigate('/login');
         }
@@ -62,92 +63,123 @@ const Dashboard = ({ token }) => {
       authenticateUser();
     }
   }, [token, navigate]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/dashboard/blog?page=${activePageBlog}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setBlogs(data.listBlogs);
+          setTotalPagesBlog(data.countBlogs);
+          setLoading(false);
+          // Extract total pages from response header
+          const totalPages = Math.ceil(data.countBlogs / blogsPerPage);
+          setTotalPagesBlog(Math.max(totalPages, 1));
+        } else {
+          console.error('Error fetching messages:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+    fetchBlogs();
+  }, [activePageBlog]);
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/dashboard/inbox?page=${activePageMessage}`,
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+            },
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setMessages(data.listMessages);
+          setLoading(false);
+          // Extract total pages from response header
+          const totalPages = Math.ceil(data.countMessage / messagesPerPage);
+          setTotalPagesMessage(Math.max(totalPages, 1));
+        } else {
+          console.error('Error fetching messages:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+    fetchMessages();
+  }, [activePageMessage]);
   // Sample blog data
-  const blogs = [
-    {
-      id: 1,
-      title: 'Blog 1',
-      description: 'Description of Blog 1',
-      tags: ['Tag1', 'Tag2'],
-    },
-    {
-      id: 2,
-      title: 'Blog 2',
-      description: 'Description of Blog 2',
-      tags: ['Tag1', 'Tag3'],
-    },
-    {
-      id: 3,
-      title: 'Blog 1',
-      description: 'Description of Blog 1',
-      tags: ['Tag1', 'Tag2'],
-    },
-    {
-      id: 4,
-      title: 'Blog 2',
-      description: 'Description of Blog 2',
-      tags: ['Tag1', 'Tag3'],
-    },
-    {
-      id: 5,
-      title: 'Blog 1',
-      description: 'Description of Blog 1',
-      tags: ['Tag1', 'Tag2'],
-    },
-    {
-      id: 6,
-      title: 'Blog 2',
-      description: 'Description of Blog 2',
-      tags: ['Tag1', 'Tag3'],
-    },
-    {
-      id: 7,
-      title: 'Blog 1',
-      description: 'Description of Blog 1',
-      tags: ['Tag1', 'Tag2'],
-    },
-    {
-      id: 8,
-      title: 'Blog 2',
-      description: 'Description of Blog 2',
-      tags: ['Tag1', 'Tag3'],
-    },
-  ];
-  const messages = [
-    {
-      id: 1,
-      name: 'John Doe',
-      description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-      datetime: '2024-04-13T12:00:00',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      description:
-        'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-      datetime: '2024-04-12T09:30:00',
-    },
-  ];
-  const totalBlogs = blogs.length;
-  const totalPagesBlog = Math.ceil(totalBlogs / blogsPerPage);
-  const indexOfLastBlog = activePageBlog * blogsPerPage;
-  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-  const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
-
-  const totalMessages = messages.length;
-  const totalPagesMessage = Math.ceil(totalMessages / messagesPerPage);
-  const indexOfLastMessage = activePageMessage * messagesPerPage;
-  const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;
-  const currentMessages = messages.slice(
-    indexOfFirstMessage,
-    indexOfLastMessage
-  );
+  // const sampleBlogs = [
+  //   {
+  //     id: 1,
+  //     title: 'Blog 1',
+  //     description: 'Description of Blog 1',
+  //     tags: ['Tag1', 'Tag2'],
+  //   },
+  //   {
+  //     id: 2,
+  //     title: 'Blog 2',
+  //     description: 'Description of Blog 2',
+  //     tags: ['Tag1', 'Tag3'],
+  //   },
+  //   {
+  //     id: 3,
+  //     title: 'Blog 1',
+  //     description: 'Description of Blog 1',
+  //     tags: ['Tag1', 'Tag2'],
+  //   },
+  //   {
+  //     id: 4,
+  //     title: 'Blog 2',
+  //     description: 'Description of Blog 2',
+  //     tags: ['Tag1', 'Tag3'],
+  //   },
+  //   {
+  //     id: 5,
+  //     title: 'Blog 1',
+  //     description: 'Description of Blog 1',
+  //     tags: ['Tag1', 'Tag2'],
+  //   },
+  //   {
+  //     id: 6,
+  //     title: 'Blog 2',
+  //     description: 'Description of Blog 2',
+  //     tags: ['Tag1', 'Tag3'],
+  //   },
+  //   {
+  //     id: 7,
+  //     title: 'Blog 1',
+  //     description: 'Description of Blog 1',
+  //     tags: ['Tag1', 'Tag2'],
+  //   },
+  //   {
+  //     id: 8,
+  //     title: 'Blog 2',
+  //     description: 'Description of Blog 2',
+  //     tags: ['Tag1', 'Tag3'],
+  //   },
+  // ];
+  // // const messages_sample = [
+  // //   {
+  // //     id: 1,
+  // //     name: 'John Doe',
+  // //     description:
+  // //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+  // //     datetime: '2024-04-13T12:00:00',
+  // //   },
+  // //   {
+  // //     id: 2,
+  // //     name: 'Jane Smith',
+  // //     description:
+  // //       'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+  // //     datetime: '2024-04-12T09:30:00',
+  // //   },
+  // // ];
   const handleTabSelect = (eventKey) => {
     sessionStorage.setItem('tab', eventKey);
   };
@@ -178,7 +210,6 @@ const Dashboard = ({ token }) => {
     // Update the formData state with the selected file
     setFormData({ ...formData, media: file });
   };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -220,47 +251,222 @@ const Dashboard = ({ token }) => {
     }
   };
   const handlePrevPageBlog = () => {
-    if (activePageBlog > 1) {
-      setActivePageBlog(activePageBlog - 1);
-    }
+    setActivePageBlog((prevPage) => {
+      const newPage = Math.max(prevPage - 1, 1);
+      scrollToTop();
+      return newPage;
+    });
   };
   const handleNextPageBlog = () => {
-    if (activePageBlog < totalPagesBlog) {
-      setActivePageBlog(activePageBlog + 1);
-    }
+    setActivePageBlog((prevPage) => {
+      const newPage = Math.min(prevPage + 1, totalPagesBlog);
+      scrollToTop();
+      return newPage;
+    });
   };
   const handlePrevPageMessage = () => {
-    if (activePageMessage > 1) {
-      setActivePageMessage(activePageMessage - 1);
-    }
+    setActivePageMessage((prevPage) => {
+      const newPage = Math.max(prevPage - 1, 1);
+      scrollToTop();
+      return newPage;
+    });
   };
   const handleNextPageMessage = () => {
-    if (activePageMessage < totalPagesMessage) {
-      setActivePageBlog(activePageMessage + 1);
+    setActivePageMessage((prevPage) => {
+      const newPage = Math.min(prevPage + 1, totalPagesMessage);
+      scrollToTop();
+      return newPage;
+    });
+  };
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scrolls to the top of the page smoothly
+  };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+  const handleBlogClick = (blog) => {
+    setSelectedBlog(blog);
+  };
+  const handleOptionClick = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+  const handleMessageClick = (message) => {
+    setSelectedMessage(message);
+  };
+  const handleCloseModal = () => {
+    setSelectedBlog(null);
+    setSelectedMessage(null);
+  };
+  const handleBlogDelete = async (blogId, e) => {
+    e.stopPropagation(); // Prevent event propagation
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/blogs/${blogId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Remove the deleted message from the messages array
+        setBlogs((prevBlogs) =>
+          prevBlogs.filter((blog) => blog.blog_id !== blogId)
+        );
+        // Show success message after deleting the message
+        toast.success('Blog post deleted successfully.');
+      } else {
+        toast.error('Unauhorized Operation');
+        console.error('Failed to delete blog:', response.statusText);
+      }
+    } catch (error) {
+      toast.error('Blog was not deleted');
+      console.error('Error deleting blog:', error);
     }
   };
+  const handleBlogEdit = async (blogId, e) => {
+    e.stopPropagation(); // Prevent event propagation
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/blogs/${blogId}`,
+        {
+          method: 'UPDATE',
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Remove the deleted message from the messages array
+        setBlogs((prevBlogs) =>
+          prevBlogs.filter((blog) => blog.blog_id !== blogId)
+        );
+        // Show success message after deleting the message
+        toast.success('Blog updated successfully.');
+      } else {
+        toast.error('Unauhorized Operation');
+        console.error('Failed to update the blog:', response.statusText);
+      }
+    } catch (error) {
+      toast.error('Blog was not updated');
+      console.error('Error updating the blog:', error);
+    }
+  };
+  const handleMessageDelete = async (messageId, e) => {
+    e.stopPropagation(); // Prevent event propagation
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/messages/${messageId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Remove the deleted message from the messages array
+        setMessages((prevMessages) =>
+          prevMessages.filter((message) => message.inbox_id !== messageId)
+        );
+        // Show success message after deleting the message
+        toast.success('Message deleted successfully.');
+      } else {
+        toast.error('Unauhorized Operation');
+        console.error('Failed to delete message:', response.statusText);
+      }
+    } catch (error) {
+      toast.error('Message was not deleted');
+      console.error('Error deleting message:', error);
+    }
+  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="container mt-4 dashboard-container">
       <h1>Dashboard</h1>
-      <Tabs defaultActiveKey={selectedTab} id="dashboard-tabs" onSelect={handleTabSelect}>
+      <Tabs
+        defaultActiveKey={selectedTab}
+        id="dashboard-tabs"
+        onSelect={handleTabSelect}
+      >
         <Tab eventKey="view" title="View">
           <div className="mt-4">
             <div className="row">
-              {currentBlogs.map((blog) => (
-                <div key={blog.id} className="col-lg-4 col-md-6 mb-4">
-                  <Card>
+              {blogs.map((blogPost) => (
+                <div key={blogPost.blog_id} className="col-lg-4 col-md-6 mb-4">
+                  <Card
+                    // key={blogPost.blog_id}
+                    className="mb-3 position-relative"
+                    onClick={() => handleBlogClick(blogPost)}
+                  >
                     <Card.Body>
-                      <Card.Title>{blog.title}</Card.Title>
-                      <Card.Text>{blog.description}</Card.Text>
-                      <Card.Text>Tags: {blog.tags.join(', ')}</Card.Text>
-                      <DropdownButton id="dropdown-basic-button" title="...">
-                        <Dropdown.Item>Edit</Dropdown.Item>
-                        <Dropdown.Item>Delete</Dropdown.Item>
-                      </DropdownButton>
+                      <Card.Title>{blogPost.title}</Card.Title>
+                      <Card.Text>{blogPost.description}</Card.Text>
+                      <Card.Text>
+                        Tags:{' '}
+                        {blogPost.tags && blogPost.tags.length > 0 ? (
+                          blogPost.tags.map((tag) => (
+                            <Tag key={tag.tag_id} tagName={tag.tag_name} />
+                          ))
+                        ) : (
+                          <span className="no-tags">N/A</span>
+                        )}
+                      </Card.Text>
+                      <Card.Text>{formatDate(blogPost.datetime)}</Card.Text>
+
+                      <div className="dropdown">
+                        <BsThreeDotsVertical
+                          className="dropdown-toggle"
+                          id={`dropdownMenuButton-${blogPost.blog_id}`}
+                          role="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          onClick={(e) => handleOptionClick(e)}
+                        />
+                        <ul
+                          className="dropdown-menu"
+                          aria-labelledby={`dropdownMenuButton-${blogPost.blog_id}`}
+                        >
+                          <li>
+                            <span
+                              className="dropdown-item"
+                              onClick={(e) => handleBlogEdit(blogPost.blog_id, e)}
+                            >
+                              Edit
+                            </span>
+                          </li>
+                          <li>
+                            <span
+                              className="dropdown-item"
+                              onClick={(e) => handleBlogDelete(blogPost.blog_id, e)}
+                            >
+                              Delete
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
                     </Card.Body>
                   </Card>
                 </div>
               ))}
+              <BlogModal blog={selectedBlog} onClose={handleCloseModal} />
             </div>
             <div className="pagination-icons">
               <FaChevronLeft
@@ -278,10 +484,9 @@ const Dashboard = ({ token }) => {
           </div>
         </Tab>
         <Tab eventKey="create" title="Create">
-          <h2 className="mt-3">Create Post</h2>
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="title">
-              <Form.Label className="mt-3">Title</Form.Label>
+              <Form.Label className="mt-4">Title</Form.Label>
               <Form.Control
                 type="text"
                 name="title"
@@ -350,21 +555,34 @@ const Dashboard = ({ token }) => {
           </Form>
         </Tab>
         <Tab eventKey="inbox" title="Inbox">
-          <h2>Inbox</h2>
-          <div className="row">
-            {currentMessages.map((message) => (
-              <div key={message.id} className="col-md-12 mb-3">
-                <Card>
+          <div className="row mt-5">
+            <div
+              className="col-md-12 mb-3"
+              style={{ overflowY: 'auto', maxHeight: '90vh' }}
+            >
+              {messages.map((message) => (
+                <Card
+                  key={message.inbox_id}
+                  className="mb-3 position-relative"
+                  onClick={() => handleMessageClick(message)}
+                >
                   <Card.Body>
-                    <Card.Title>{message.name}</Card.Title>
-                    <Card.Text>
-                      {message.description.substring(0, 50)}...
-                    </Card.Text>
-                    <Card.Text>{message.datetime}</Card.Text>
+                    <Card.Title>{message.source_title}</Card.Title>
+                    <Card.Text>{message.content.substring(0, 50)}...</Card.Text>
+                    <Card.Text>{formatDate(message.created_at)}</Card.Text>
+                    <BsTrash
+                      className="position-absolute top-0 end-0 m-2"
+                      style={{ cursor: 'pointer', fontSize: '32px' }} // Adjust the fontSize here
+                      onClick={(e) => handleMessageDelete(message.inbox_id, e)}
+                    />
                   </Card.Body>
                 </Card>
-              </div>
-            ))}
+              ))}
+            </div>
+            <MessageModal
+              message={selectedMessage}
+              onClose={handleCloseModal}
+            />
           </div>
           <div className="pagination-icons">
             <FaChevronLeft

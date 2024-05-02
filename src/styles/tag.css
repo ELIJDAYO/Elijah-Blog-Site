@@ -1,0 +1,10 @@
+/* tag.css */
+.tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #9941a1; /* You can change the background color */
+    color: #cea4a4;
+  }
+  

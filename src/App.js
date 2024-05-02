@@ -37,7 +37,7 @@ const App = () => {
   const handleLogout = () => {
     sessionStorage.removeItem('token');
     setToken('');
-    window.location.reload(); 
+    window.location.href = '/login';
   };
   return (
     <Router>

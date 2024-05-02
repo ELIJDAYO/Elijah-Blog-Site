@@ -38,7 +38,6 @@ const LoginRegisterForm = () => {
         sessionStorage.setItem('token', token);
         setLoggedIn(true);
         window.location.reload();
-        navigate('/login');
       } else {
         console.error('Login failed:', response.statusText);
         toast.error('Login failed. Please check your username and password.');

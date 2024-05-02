@@ -36,7 +36,12 @@ const Contact = () => {
         body: JSON.stringify({ firstName, lastName,  message}),
       });
       if (response.ok) {
-        window.location.reload();
+        toast.success('Submitted!');
+        setFormData({
+          firstName: '',
+          lastName: '',
+          message: '',
+        });
       } else {
         console.error('Submission failed:', response.statusText);
         toast.error('Submission Failed');

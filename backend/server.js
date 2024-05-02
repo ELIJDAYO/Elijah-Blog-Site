@@ -6,7 +6,10 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const app = express();
-const { authenticateToken } = require('./authMiddleware');
+const {
+  authenticateUserToken,
+  authenticateAdminToken,
+} = require('./authMiddleware');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 
@@ -80,7 +83,23 @@ app.post('/api/register', (req, res) => {
   );
 });
 
+// Submit contact form
+app.post('/api/contact', (req, res) => {
+  const { firstName, lastName, message } = req.body;
+  const content = `${firstName} ${lastName} sent a message:
+  ${message}`;
 
+  const sql = 'INSERT INTO inbox (content, source_title) VALUES (?,?)';
+  connection.query(sql, [content, 'Origin: Contact Form'], (err, result) => {
+    if (err) {
+      console.error('Error inserting into inbox table:', err);
+      res.status(500).json({ error: 'Unable to submit message' });
+      return;
+    }
+    console.log('Message submitted successfully');
+    res.status(200).json({ message: 'Message submitted successfully' });
+  });
+});
 
 // Handle POST request to create a new post
 app.post('/api/posts/create', upload.single('media'), async (req, res) => {
@@ -90,7 +109,9 @@ app.post('/api/posts/create', upload.single('media'), async (req, res) => {
   try {
     // Validate form data (e.g., check if required fields are present)
     if (!title || !description) {
-      return res.status(400).json({ error: 'Title and description are required' });
+      return res
+        .status(400)
+        .json({ error: 'Title and description are required' });
     }
 
     // Extract username from the token
@@ -100,7 +121,7 @@ app.post('/api/posts/create', upload.single('media'), async (req, res) => {
     // Retrieve user UID and check admin status
     const [uidResult, isAdminResult] = await Promise.all([
       queryUserUid(username),
-      queryUserAdminStatus(username)
+      queryUserAdminStatus(username),
     ]);
 
     const extractedUid = uidResult[0].uid;
@@ -108,7 +129,9 @@ app.post('/api/posts/create', upload.single('media'), async (req, res) => {
 
     // Check if user is admin
     if (!isAdmin) {
-      return res.status(403).json({ error: 'You are not authorized to perform this action' });
+      return res
+        .status(403)
+        .json({ error: 'You are not authorized to perform this action' });
     }
 
     let mediaUrl = null;
@@ -177,12 +200,12 @@ const uploadToCloudinary = (filePath) => {
 
 // Function to insert post data into MySQL database
 const insertPost = (uid, title, description, mediaUrl) => {
-  const postSql = mediaUrl ?
-    'INSERT INTO blog (uid, title, description, media_url) VALUES (?, ?, ?, ?)' :
-    'INSERT INTO blog (uid, title, description) VALUES (?, ?, ?)';
-  const postValues = mediaUrl ?
-    [uid, title, description, mediaUrl] :
-    [uid, title, description];
+  const postSql = mediaUrl
+    ? 'INSERT INTO blog (uid, title, description, media_url) VALUES (?, ?, ?, ?)'
+    : 'INSERT INTO blog (uid, title, description) VALUES (?, ?, ?)';
+  const postValues = mediaUrl
+    ? [uid, title, description, mediaUrl]
+    : [uid, title, description];
   return new Promise((resolve, reject) => {
     connection.query(postSql, postValues, (err, result) => {
       if (err) {
@@ -339,7 +362,7 @@ app.post('/api/verify', (req, res) => {
   });
 });
 
-app.get('/api/dashboard', authenticateToken, (req, res) => {
+app.get('/api/dashboard', authenticateUserToken, (req, res) => {
   // Access the user data from the request object
   const { username } = req.user;
 
@@ -347,8 +370,215 @@ app.get('/api/dashboard', authenticateToken, (req, res) => {
   res.json({ message: `Welcome to the dashboard, ${username}!` });
 });
 
+const getTagsForBlog = (blogId) => {
+  return new Promise((resolve, reject) => {
+    const sql =
+      'SELECT tag.tag_id, tag.tag_name FROM blog_tag JOIN tag ON blog_tag.tag_id = tag.tag_id WHERE blog_tag.blog_id = ?';
+    connection.query(sql, [blogId], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        // console.log(results);
+        resolve(results);
+      }
+    });
+  });
+};
+app.get('/api/dashboard/blog', (req, res) => {
+  const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+  const blogsPerPage = 6; // Number of blog posts per page
+  const offset = (page - 1) * blogsPerPage;
 
+  const sqlCount = 'SELECT COUNT(*) AS total FROM blog'; // Query to count total number of blogs
+  const sql = 'SELECT * FROM blog ORDER BY datetime DESC LIMIT ? OFFSET ?';
 
+  connection.query(sqlCount, (err, countResult) => {
+    if (err) {
+      console.error('Error counting blog posts:', err);
+      res.status(500).json({ error: 'Unable to fetch blog posts' });
+      return;
+    }
+
+    const totalBlogs = countResult[0].total; // Total number of blogs
+
+    connection.query(sql, [blogsPerPage, offset], async (err, blogResults) => {
+      if (err) {
+        console.error('Error querying blog table:', err);
+        res.status(500).json({ error: 'Unable to fetch blog posts' });
+        return;
+      }
+
+      try {
+        for (const blog of blogResults) {
+          const tags = await getTagsForBlog(blog.blog_id);
+          blog.tags = tags;
+        }
+
+        console.log('Blog posts fetched successfully');
+        // console.log(blogResults);
+        const responseObject = {
+          listBlogs: blogResults,
+          countBlogs: totalBlogs,
+        };
+        // console.log(responseObject);
+        res.status(200).json(responseObject);
+      } catch (error) {
+        console.error('Error fetching tags for blog posts:', error);
+        res.status(500).json({ error: 'Unable to fetch tags for blog posts' });
+      }
+    });
+  });
+});
+
+app.get('/api/dashboard/inbox', authenticateAdminToken, (req, res) => {
+  const { username, isAdmin } = req.user;
+  const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+  const messagesPerPage = 10; // Number of messages per page
+
+  // Calculate the offset to skip records based on the current page
+  const offset = (page - 1) * messagesPerPage;
+
+  const sqlCount = 'SELECT COUNT(*) AS total FROM inbox'; // Query to count total records
+  connection.query(sqlCount, (err, countResult) => {
+    if (err) {
+      console.error('Error counting records in inbox table:', err);
+      res.status(500).json({ error: 'Unable to fetch messages' });
+      return;
+    }
+    const totalMessages = countResult[0].total; // Total count of messages
+
+    const sql = 'SELECT * FROM inbox ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    connection.query(sql, [messagesPerPage, offset], (err, results) => {
+      if (err) {
+        console.error('Error querying inbox table:', err);
+        res.status(500).json({ error: 'Unable to fetch messages' });
+        return;
+      }
+      console.log('Messages fetched successfully');
+
+      if (isAdmin === 0) {
+        results.forEach((message) => {
+          message.content = '*'.repeat(message.content.length);
+        });
+      }
+
+      const responseObject = {
+        listMessages: results, // Assuming `results` contains the messages
+        countMessage: totalMessages, // Assuming `totalMessages` is the total count
+      };
+      res.status(200).json(responseObject);
+    });
+  });
+});
+// Function to delete blog tags associated with a blog
+const deleteBlogTags = (blogId) => {
+  return new Promise((resolve, reject) => {
+    const deleteTagsQuery = 'DELETE FROM blog_tag WHERE blog_id = ?';
+    connection.query(deleteTagsQuery, [blogId], (error, result) => {
+      if (error) {
+        console.error('Error deleting blog tags:', error);
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
+};
+
+// Delete blog endpoint
+app.delete('/api/blogs/:blogId', authenticateAdminToken, async (req, res) => {
+  const { isAdmin } = req.user;
+  const blogId = req.params.blogId;
+
+  // Check if the user is an admin
+  if (isAdmin === 1) {
+    try {
+      // Delete blog tags first
+      await deleteBlogTags(blogId);
+
+      // Get the media URL of the blog
+      const getMediaUrlQuery = 'SELECT media_url FROM blog WHERE blog_id = ?';
+      connection.query(getMediaUrlQuery, [blogId], async (error, results) => {
+        if (error) {
+          console.error('Error fetching media URL:', error);
+          res.status(500).json({ error: 'Failed to delete blog' });
+          return;
+        }
+
+        // If media URL exists, delete the image from Cloudinary
+        const mediaUrl = results[0].media_url;
+        if (mediaUrl) {
+          // Extract the public ID from the Cloudinary URL
+          const publicId = mediaUrl.split('/').pop().split('.')[0];
+
+          // Delete the image using the public ID
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (cloudinaryError) {
+            console.error(
+              'Error deleting image from Cloudinary:',
+              cloudinaryError
+            );
+            res.status(500).json({ error: 'Failed to delete blog' });
+            return;
+          }
+        }
+
+        // Once image is deleted from Cloudinary or if no image exists, delete the blog record
+        const deleteBlogQuery = 'DELETE FROM blog WHERE blog_id = ?';
+        connection.query(
+          deleteBlogQuery,
+          [blogId],
+          (deleteError, deleteResult) => {
+            if (deleteError) {
+              console.error('Error deleting blog:', deleteError);
+              res.status(500).json({ error: 'Failed to delete blog' });
+              return;
+            }
+
+            console.log('Blog deleted successfully.');
+            // Send a success status without any content
+            res.sendStatus(204);
+          }
+        );
+      });
+    } catch (error) {
+      console.error('Error deleting blog tags:', error);
+      res.status(500).json({ error: 'Failed to delete blog' });
+    }
+  } else {
+    // If the user is not an admin, return an unauthorized status
+    res
+      .status(403)
+      .json({ error: 'Unauthorized: Only admins can delete blogs' });
+  }
+});
+
+app.delete('/api/messages/:messageId', authenticateAdminToken, (req, res) => {
+  const { isAdmin } = req.user;
+  const messageId = req.params.messageId;
+
+  // Check if the user is an admin
+  if (isAdmin === 1) {
+    // Implement logic to delete the message with the given messageId from the database
+    const sql = 'DELETE FROM inbox WHERE inbox_id = ?';
+    connection.query(sql, [messageId], (err, result) => {
+      if (err) {
+        console.error('Error deleting message:', err);
+        res.status(500).json({ error: 'Failed to delete message' });
+        return;
+      }
+
+      console.log('Message deleted successfully.');
+      res.sendStatus(204); // Send a success status without any content
+    });
+  } else {
+    // If the user is not an admin, return an unauthorized status
+    res
+      .status(403)
+      .json({ error: 'Unauthorized: Only admins can delete messages' });
+  }
+});
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

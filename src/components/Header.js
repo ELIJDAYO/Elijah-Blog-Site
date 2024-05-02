@@ -64,7 +64,7 @@ const Header = ({ token, handleLogout }) => {
               <li className="nav-item dropdown">
                 <NavLink
                   className="nav-link dropdown-toggle"
-                  activeclassname="inactive" //eslint-disable-next-line
+                  activeclassname="active" //eslint-disable-next-line
                   to="#"
                   id="navbarDropdown"
                   role="button"
@@ -107,7 +107,7 @@ const Header = ({ token, handleLogout }) => {
                 <li className="nav-item dropdown">
                   <NavLink
                     className="nav-link btn-link dropdown-toggle"
-                    activeClassName="active"
+                    activeclassname="active" //eslint-disable-next-line
                     id="navbarDropdown"
                     role="button"
                     data-bs-toggle="dropdown"

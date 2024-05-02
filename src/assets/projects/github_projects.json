@@ -1,7 +1,7 @@
 [
     {
       "title": "Emotion Recognition in Text Dialogue Data",
-      "description": "Training ML model to classify emotion in utterance. I leveraged the context of a dialogue and speakers to enrich the data representation, and implmented techniques to efficiently train the model.",
+      "description": "Training ML model to classify emotion in utterance. I leveraged the context of a dialogue and speakers to enrich the data representation, and implemented techniques to efficiently train the model.",
       "image": "erc.png",
       "webLink": "https://github.com/ELIJDAYO/ER_GAT"
     },
