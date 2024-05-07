@@ -6,6 +6,10 @@
   padding: 20px;
   color: rgb(189, 189, 189);
   margin-bottom: 100px;
+  flex-grow: 1; /* Let the container grow to take remaining space */
+  height: 90vh; /* Set container height to 90% of viewport height */
+  max-height: calc(100vh - 40px); /* Set max height to viewport height minus header and footer heights */
+  overflow-y: auto; /* Add vertical scrollbar if needed */
 }
 
 .pagination-icons {
@@ -49,4 +53,8 @@ img{
 
 .no-tags {
   color: #8f99a1;
+}
+
+.dropdown-toggle{
+  color: aliceblue;
 }

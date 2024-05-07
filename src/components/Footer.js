@@ -2,12 +2,13 @@ import '../styles/footer.css';
 import React from 'react';
 import { FaGithub, FaLinkedin } from 'react-icons/fa'; // Import icons from react-icons library
 import { SiPaypal } from 'react-icons/si';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const navigate = useNavigate();
   const handleDonate = () => {
-    // Redirect user to the donation page
-    // You can implement this according to your chosen payment method
+    navigate('/donation');
   };
   return (
     <footer className="footer bg-dark text-light text-center p-3">
@@ -34,10 +35,10 @@ const Footer = () => {
             </div>
           </div>
           <div className="col-md-6 d-flex flex-column align-items-center">
-            <p>Donate to inspire me to make projects:</p>
+            <p>Help me run this website and create awesome projects:</p>
             <div className="d-flex align-items-center ">
               <button className="btn btn-secondary" onClick={handleDonate}>
-                Donate
+                Send a support
               </button>
               <div className="d-flex align-items-center custom-height">
                 <SiPaypal

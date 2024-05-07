@@ -13,8 +13,9 @@ color: #fff; /* Change to desired color */
 }
 
 .header {
-border-bottom: 2px solid #a7acd1cb; /* White border for the horizontal line */
-margin-bottom: 10px;
+  padding: 10px;
+  border-bottom: 2px solid #a7acd1cb; /* White border for the horizontal line */
+  margin-bottom: 10px;
 }
 
 .dropdown-menu{

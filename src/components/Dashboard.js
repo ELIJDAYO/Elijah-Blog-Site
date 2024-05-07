@@ -8,6 +8,9 @@ import MessageModal from '../modal/MessageModal';
 import BlogModal from '../modal/BlogModal';
 import { BsThreeDotsVertical, BsTrash } from 'react-icons/bs';
 import Tag from './Tag';
+import { useBlogEditContext } from '../pages/BlogEditContext';
+import LoadingScreen from '../components/LoadingScreen';
+
 const Dashboard = ({ token }) => {
   const [activePageBlog, setActivePageBlog] = useState(1);
   const [activePageMessage, setActivePageMessage] = useState(1);
@@ -22,11 +25,13 @@ const Dashboard = ({ token }) => {
     title: '',
     description: '',
     tags: [],
-    media: null, // To store media content
+    media_url: null
   });
   const [selectedTab] = useState(sessionStorage.getItem('tab') || 'view');
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const { updateBlog } = useBlogEditContext();
+
   const navigate = useNavigate();
   useEffect(() => {
     const authenticateUser = async () => {
@@ -45,6 +50,7 @@ const Dashboard = ({ token }) => {
         } else {
           // alert('Session expired');
           sessionStorage.removeItem('token');
+          window.location.reload();
           navigate('/login');
         }
       } catch (error) {
@@ -208,7 +214,7 @@ const Dashboard = ({ token }) => {
     }
 
     // Update the formData state with the selected file
-    setFormData({ ...formData, media: file });
+    setFormData({ ...formData, media_url: file });
   };
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -217,18 +223,19 @@ const Dashboard = ({ token }) => {
     formDataToSubmit.append('title', formData.title);
     formDataToSubmit.append('description', formData.description);
 
-    // Check if formData.media is not null or undefined before appending it
-    if (formData.media) {
-      formDataToSubmit.append('media', formData.media);
+    if (formData.media_url) {
+      formDataToSubmit.append('media_url', formData.media_url);
     }
 
     const tags = formData.tags || [];
     formDataToSubmit.append('tags', tags.join(','));
-    formDataToSubmit.append('token', token);
 
     try {
       const response = await fetch('http://localhost:5000/api/posts/create', {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+        },
         body: formDataToSubmit,
       });
 
@@ -240,7 +247,7 @@ const Dashboard = ({ token }) => {
           title: '',
           description: '',
           tags: [],
-          media: null,
+          media_url: null,
         });
       } else {
         toast.error('Blog posting is not available for guest account');
@@ -335,34 +342,11 @@ const Dashboard = ({ token }) => {
       console.error('Error deleting blog:', error);
     }
   };
-  const handleBlogEdit = async (blogId, e) => {
-    e.stopPropagation(); // Prevent event propagation
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/blogs/${blogId}`,
-        {
-          method: 'UPDATE',
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        // Remove the deleted message from the messages array
-        setBlogs((prevBlogs) =>
-          prevBlogs.filter((blog) => blog.blog_id !== blogId)
-        );
-        // Show success message after deleting the message
-        toast.success('Blog updated successfully.');
-      } else {
-        toast.error('Unauhorized Operation');
-        console.error('Failed to update the blog:', response.statusText);
-      }
-    } catch (error) {
-      toast.error('Blog was not updated');
-      console.error('Error updating the blog:', error);
-    }
+  const handleBlogEdit = async (blog, e) => {
+    e.stopPropagation();
+    // console.log(blog)
+    updateBlog(blog);
+    navigate(`/edit/${blog.blog_id}`);
   };
   const handleMessageDelete = async (messageId, e) => {
     e.stopPropagation(); // Prevent event propagation
@@ -395,9 +379,8 @@ const Dashboard = ({ token }) => {
     }
   };
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingScreen />;
   }
-
   return (
     <div className="container mt-4 dashboard-container">
       <h1>Dashboard</h1>
@@ -447,7 +430,7 @@ const Dashboard = ({ token }) => {
                           <li>
                             <span
                               className="dropdown-item"
-                              onClick={(e) => handleBlogEdit(blogPost.blog_id, e)}
+                              onClick={(e) => handleBlogEdit(blogPost, e)}
                             >
                               Edit
                             </span>
@@ -530,16 +513,16 @@ const Dashboard = ({ token }) => {
               <Form.Control
                 type="file"
                 id="custom-file"
-                name="media"
+                name="media_url"
                 accept=".png, .jpg, .jpeg" // Limit file types to PNG, JPG, and JPEG
                 onChange={handleMediaChange}
               />
               {/* Display the preview of the uploaded image */}
-              {formData.media && (
+              {formData.media_url && (
                 <div className="image-preview">
                   <img
                     className=""
-                    src={URL.createObjectURL(formData.media)}
+                    src={URL.createObjectURL(formData.media_url)}
                     alt="Media Preview"
                   />
                 </div>

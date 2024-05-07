@@ -51,8 +51,6 @@ function authenticateAdminToken(req, res, next) {
 
             const isAdmin = results[0].isAdmin;
             req.user = { username, isAdmin };
-
-            // Call next middleware or route handler
             next();
           }
         );

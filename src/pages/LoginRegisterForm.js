@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import LoadingScreen from '../components/LoadingScreen';
+
 const LoginRegisterForm = () => {
   const [loginForm, setLoginForm] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
@@ -76,7 +78,7 @@ const LoginRegisterForm = () => {
     <div>
       {loading ? (
         // Show loading spinner or splash screen while waiting
-        <div className="loading-spinner welcome-container">Loading...</div>
+         <LoadingScreen />
       ) : loggedIn ? (
         // Show welcome message and logout button if logged in
         <div className="welcome-container">

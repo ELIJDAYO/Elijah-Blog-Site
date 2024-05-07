@@ -90,7 +90,7 @@ const Home = () => {
             src={profileImage}
             className="img-fluid rounded-circle mb-3 profile-image"
             alt="Profile"
-            style={{ maxWidth: '100%', height: '300px', width: 'auto' }}
+            style={{ maxWidth: '300px', maxHeight: '300px'}}
           />
           <h2 className="mt-3">ELIJAH DAYON</h2>
           <p>Graduating Computer Science Student & Lead Developer</p>

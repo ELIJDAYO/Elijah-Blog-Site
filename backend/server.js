@@ -16,6 +16,32 @@ const cloudinary = require('cloudinary').v2;
 // Configure multer for file uploads
 const upload = multer({ dest: 'uploads/' });
 
+//deleting the contents of uploads after image file/s have been updated
+const fs = require('fs');
+const path = require('path');
+const uploadsFolder = 'uploads';
+
+// Function to delete the contents of the uploads folder
+const deleteUploadsFolderContents = () => {
+  fs.readdir(uploadsFolder, (err, files) => {
+    if (err) {
+      console.error('Error reading uploads folder:', err);
+      return;
+    }
+
+    files.forEach((file) => {
+      const filePath = path.join(uploadsFolder, file);
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error('Error deleting file:', filePath, err);
+        } else {
+          console.log('File deleted:', filePath);
+        }
+      });
+    });
+  });
+};
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -31,10 +57,15 @@ connection.connect((err) => {
   }
   console.log('Connected to MySQL database');
 });
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPDATE'], // Include UPDATE method
+};
 
 // Middleware to parse JSON requests
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+// app.options('/api/posts/update', cors(corsOptions));
 
 // User registration endpoint
 app.post('/api/register', (req, res) => {
@@ -101,58 +132,191 @@ app.post('/api/contact', (req, res) => {
   });
 });
 
-// Handle POST request to create a new post
-app.post('/api/posts/create', upload.single('media'), async (req, res) => {
-  const { title, description, tags, token } = req.body;
-  const media = req.file;
+// 1. getMediaUrl(blog_id)
+const getMediaUrl = (blog_id) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT media_url FROM blog WHERE blog_id = ?';
+    connection.query(sql, [blog_id], (err, result) => {
+      if (err) {
+        console.error('Error fetching media_url from database:', err);
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 
-  try {
-    // Validate form data (e.g., check if required fields are present)
-    if (!title || !description) {
-      return res
-        .status(400)
-        .json({ error: 'Title and description are required' });
-    }
+// 2. deleteCloudinary(currentMediaUrl)
+const deleteCloudinary = (currentMediaUrl) => {
+  return new Promise((resolve, reject) => {
+    // Extract the public_id from the currentMediaUrl
+    const publicId = currentMediaUrl.split('/').pop().split('.')[0]; // Assuming the URL structure is consistent
 
-    // Extract username from the token
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const username = decodedToken.username;
+    // Implement the code to delete the image from Cloudinary
+    cloudinary.uploader.destroy(publicId, (error, result) => {
+      if (error) {
+        console.error('Error deleting image from Cloudinary:', error);
+        reject(error);
+      } else {
+        // console.log("Success: ", result);
+        resolve(result);
+      }
+    });
+  });
+};
+const updatePost = (blog_id, title, description, media_url) => {
+  return new Promise((resolve, reject) => {
+    const postSql =  'UPDATE blog SET title = ?, description = ?, media_url = ? WHERE blog_id = ?';
+    const postValues = [title, description, media_url, blog_id];
 
-    // Retrieve user UID and check admin status
-    const [uidResult, isAdminResult] = await Promise.all([
-      queryUserUid(username),
-      queryUserAdminStatus(username),
-    ]);
+    connection.query(postSql, postValues, (err, result) => {
+      if (err) {
+        console.error('Error updating post data in the database:', err);
+        reject(err);
+      } else {
+        resolve(result.affectedRows); // Return the number of affected rows
+      }
+    });
+  });
+};
 
-    const extractedUid = uidResult[0].uid;
-    const isAdmin = isAdminResult[0].isAdmin === 1;
+app.put(
+  '/api/posts/update',
+  authenticateAdminToken,
+  upload.single('media_url'),
+  async (req, res) => {
+    const { username, isAdmin } = req.user;
+    const { blog_id, title, description, tags } = req.body;
+    var media = req.file;
+    const cloudUrl = 'https://res.cloudinary.com';
+    if (isAdmin) {
+      try {
+        let mediaUrl = null;
+        let currentMediaUrl = null;
+        // Fetch the current media_url from the database
+        const [mediaUrlResult] = await getMediaUrl(blog_id);
+        if(!media){
+          media = null;
+        }
 
-    // Check if user is admin
-    if (!isAdmin) {
+        currentMediaUrl = mediaUrlResult.media_url;
+        // console.log(blog_id, title, description, tags, currentMediaUrl, media);
+
+        // Check the cases and handle accordingly
+        if (media && media.path) {
+          // Case 1: New media uploaded
+          if (
+            currentMediaUrl &&
+            currentMediaUrl.startsWith(cloudUrl)
+          ) {
+            // Delete the old image from Cloudinary
+            await deleteCloudinary(currentMediaUrl);
+          }
+          // Upload the new media file to Cloudinary
+          const result = await uploadToCloudinary(media.path);
+          mediaUrl = result.secure_url;
+        } else if (
+          currentMediaUrl &&
+          currentMediaUrl.startsWith(cloudUrl) &&
+          media==null
+        ) {
+          console.log("Did it pass here?");
+          // Case 4: Media removed
+          await deleteCloudinary(currentMediaUrl);
+          mediaUrl = null;
+        }
+
+        // Perform update operation
+        const affectedRows = await updatePost(
+          blog_id,
+          title,
+          description,
+          mediaUrl
+        );
+
+        // Check if the update was successful
+        if (affectedRows > 0) {
+          // Delete existing blog tags
+          await deleteBlogTags(blog_id);
+          // Insert tags for the updated post
+          await insertTags(blog_id, tags);
+          deleteUploadsFolderContents();
+          return res.status(200).json({ message: 'Post updated successfully' });
+        } else {
+          return res.status(404).json({ error: 'Post was not updated' });
+        }
+      } catch (error) {
+        console.error('Error updating the post:', error);
+        return res.status(500).json({ error: 'Failed to update the post' });
+      }
+    } else {
       return res
         .status(403)
         .json({ error: 'You are not authorized to perform this action' });
     }
-
-    let mediaUrl = null;
-    if (media && media.path) {
-      // Upload media file to Cloudinary
-      const result = await uploadToCloudinary(media.path);
-      mediaUrl = result.secure_url;
-    }
-
-    // Insert post data into MySQL database
-    const postId = await insertPost(extractedUid, title, description, mediaUrl);
-
-    // Insert tags into the blog_tag table
-    await insertTags(postId, tags);
-
-    return res.status(201).json({ message: 'Post created successfully' });
-  } catch (error) {
-    console.error('Error creating post:', error);
-    return res.status(500).json({ error: 'Failed to create post' });
   }
-});
+);
+
+// Handle POST request to create a new post
+app.post(
+  '/api/posts/create',
+  upload.single('media_url'),
+  authenticateAdminToken,
+  async (req, res) => {
+    const { username, isAdmin } = req.user;
+    const { title, description, tags, token } = req.body;
+    const media = req.file;
+
+    try {
+      // Validate form data (e.g., check if required fields are present)
+      if (!title || !description) {
+        return res
+          .status(400)
+          .json({ error: 'Title and description are required' });
+      }
+
+      // Retrieve user UID and check admin status
+      const [uidResult, isAdminResult] = await Promise.all([
+        queryUserUid(username),
+        // queryUserAdminStatus(username),
+      ]);
+
+      const extractedUid = uidResult[0].uid;
+      // const isAdmin = isAdminResult[0].isAdmin === 1;
+
+      // Check if user is admin
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: 'You are not authorized to perform this action' });
+      }
+
+      let mediaUrl = null;
+      if (media && media.path) {
+        // Upload media file to Cloudinary
+        const result = await uploadToCloudinary(media.path);
+        mediaUrl = result.secure_url;
+      }
+
+      // Insert post data into MySQL database
+      const postId = await insertPost(
+        extractedUid,
+        title,
+        description,
+        mediaUrl
+      );
+
+      // Insert tags into the blog_tag table
+      await insertTags(postId, tags);
+
+      return res.status(201).json({ message: 'Post created successfully' });
+    } catch (error) {
+      console.error('Error creating post:', error);
+      return res.status(500).json({ error: 'Failed to create post' });
+    }
+  }
+);
 
 // Function to query user UID
 const queryUserUid = (username) => {
@@ -199,12 +363,12 @@ const uploadToCloudinary = (filePath) => {
 };
 
 // Function to insert post data into MySQL database
-const insertPost = (uid, title, description, mediaUrl) => {
-  const postSql = mediaUrl
+const insertPost = (uid, title, description, media_url) => {
+  const postSql = media_url
     ? 'INSERT INTO blog (uid, title, description, media_url) VALUES (?, ?, ?, ?)'
     : 'INSERT INTO blog (uid, title, description) VALUES (?, ?, ?)';
-  const postValues = mediaUrl
-    ? [uid, title, description, mediaUrl]
+  const postValues = media_url
+    ? [uid, title, description, media_url]
     : [uid, title, description];
   return new Promise((resolve, reject) => {
     connection.query(postSql, postValues, (err, result) => {
@@ -221,24 +385,32 @@ const insertPost = (uid, title, description, mediaUrl) => {
 // Function to insert tags into blog_tag table
 function insertTags(blogId, tags) {
   return new Promise((resolve, reject) => {
-    // Check if tags are provided
     if (tags) {
       // Convert tags to an array if it's a single tag
-      // console.log(tags);
       const tagArray = Array.isArray(tags)
         ? tags
         : tags.split(',').map((tag) => tag.trim());
-      // console.log(tagArray);
+
+      // Initialize an array to store unique tag names
+      const uniqueTagNames = [];
+
+      // Filter out duplicate tag names
+      tagArray.forEach((tagName) => {
+        if (!uniqueTagNames.includes(tagName)) {
+          uniqueTagNames.push(tagName);
+        }
+      });
+
       // Query to check if tag exists and retrieve its tag_id or insert new tag
-      const queries = tagArray.map((tagName) => {
+      const queries = uniqueTagNames.map((tagName) => {
         return new Promise((resolveQuery, rejectQuery) => {
           const selectSql = 'SELECT tag_id FROM tag WHERE tag_name = ?';
           connection.query(selectSql, [tagName], (selectErr, selectResult) => {
             if (selectErr) {
               rejectQuery(selectErr);
             } else if (selectResult.length > 0) {
-              // Tag already exists, retrieve its tag_id
-              resolveQuery(selectResult[0].tag_id);
+              // Tag already exists, resolve without doing anything
+              resolveQuery();
             } else {
               // Tag does not exist, insert new tag and retrieve its tag_id
               const insertSql = 'INSERT INTO tag (tag_name) VALUES (?)';
@@ -249,7 +421,7 @@ function insertTags(blogId, tags) {
                   if (insertErr) {
                     rejectQuery(insertErr);
                   } else {
-                    resolveQuery(insertResult.insertId);
+                    resolveQuery();
                   }
                 }
               );
@@ -260,21 +432,53 @@ function insertTags(blogId, tags) {
 
       // Resolve all queries and insert tag_id into blog_tag table
       Promise.all(queries)
-        .then((tagIds) => {
+        .then(() => {
           const tagInsertSql =
             'INSERT INTO blog_tag (blog_id, tag_id) VALUES ?';
-          const tagValues = tagIds.map((tagId) => [blogId, tagId]);
-          connection.query(
-            tagInsertSql,
-            [tagValues],
-            (tagInsertErr, tagInsertResult) => {
-              if (tagInsertErr) {
-                reject(tagInsertErr);
-              } else {
-                resolve();
-              }
-            }
-          );
+
+          // Get the tag_ids for the unique tag names
+          const tagIdQueries = uniqueTagNames.map((tagName) => {
+            return new Promise((resolveQuery, rejectQuery) => {
+              const selectSql = 'SELECT tag_id FROM tag WHERE tag_name = ?';
+              connection.query(
+                selectSql,
+                [tagName],
+                (selectErr, selectResult) => {
+                  if (selectErr) {
+                    rejectQuery(selectErr);
+                  } else if (selectResult.length > 0) {
+                    resolveQuery(selectResult[0].tag_id);
+                  } else {
+                    // This should not happen as we've already inserted new tags
+                    rejectQuery(
+                      new Error('Failed to retrieve tag_id for new tag')
+                    );
+                  }
+                }
+              );
+            });
+          });
+
+          // Resolve all tag_id queries
+          Promise.all(tagIdQueries)
+            .then((tagIds) => {
+              // Create values for bulk insertion
+              const tagValues = tagIds.map((tagId) => [blogId, tagId]);
+              connection.query(
+                tagInsertSql,
+                [tagValues],
+                (tagInsertErr, tagInsertResult) => {
+                  if (tagInsertErr) {
+                    reject(tagInsertErr);
+                  } else {
+                    resolve();
+                  }
+                }
+              );
+            })
+            .catch((error) => {
+              reject(error);
+            });
         })
         .catch((error) => {
           reject(error);

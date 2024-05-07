@@ -1,0 +1,15 @@
+.blog-edit-container {
+  
+  justify-content: center; 
+  align-items: center; 
+  flex-grow: 1; /* Let the container grow to take remaining space */
+  height: 90vh; /* Set container height to 90% of viewport height */
+  max-height: calc(100vh - 40px); /* Set max height to viewport height minus header and footer heights */
+  overflow-y: auto; /* Add vertical scrollbar if needed */
+}
+
+.form-control {
+  margin-top: 30px;
+  margin-bottom: 20px; 
+  background-color: #ffffffa2; 
+}

@@ -12,6 +12,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import BlogEditPage from './pages/BlogEditPage';
+import Donation from './pages/Donation';
+import { BlogEditProvider } from './pages/BlogEditContext';
 
 const FontLink = () => (
   <link
@@ -36,34 +39,41 @@ const App = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('blogToEdit');
     setToken('');
     window.location.href = '/login';
   };
   return (
     <Router>
-      <div className="app-container">
-        <FontLink /> {/* Apply background styles to this container */}
-        <Header token={token} handleLogout={handleLogout} />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/501" element={<Error501Page />} />
-          (token && 
+      <BlogEditProvider>
+        <div className="app-container">
+          <FontLink /> {/* Apply background styles to this container */}
+          <Header token={token} handleLogout={handleLogout} />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/501" element={<Error501Page />} />
+            <Route path="/donation" element={<Donation />} />
+
+            (token &&
             <Route path="/login" element={<LoginRegisterForm />} />
-          )
-          <Route
-            path="/dashboard"
-            element={<Dashboard token={token} setLoading={setLoading} />}
-          />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<Error404Page />} />
-          {/* Uncomment and configure other routes as needed */}
-          {/* <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogDetail />} />
-           */}
-        </Routes>
-        <ToastContainer />
-        <Footer />
-      </div>
+            )
+            <Route
+              path="/dashboard"
+              element={<Dashboard token={token} setLoading={setLoading} />}
+            />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<Error404Page />} />
+            {/* Uncomment and configure other routes as needed */}
+            {/* <Route path="/blog" element={<Blog />} /> */}
+            {/* <Route path="/blog/:id" element={<BlogDetail />} /> */}
+            (token &&        
+              <Route path="/edit/:blogId" element={<BlogEditPage /> } setLoading={setLoading} />
+            )
+          </Routes>
+          <ToastContainer />
+          <Footer />
+        </div>
+      </BlogEditProvider>
     </Router>
   );
 };

@@ -24,7 +24,7 @@ const BlogModal = ({ blog, onClose }) => {
           {blog && blog.media_url ? (
             <img
               src={blog.media_url}
-              className="img-fluid image-preview"
+              className="img-fluid image-preview mx-5"
               alt={blog.title}
             />
           ) : (
