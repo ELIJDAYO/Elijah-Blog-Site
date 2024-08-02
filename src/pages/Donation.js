@@ -1,11 +1,13 @@
-// Donation.js
 import React, { useState } from 'react';
 import '../styles/donation.css';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+
 
 const Donation = () => {
   const [amount, setAmount] = useState(20);
   const [paymentChannel, setPaymentChannel] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleAmountChange = (e) => {
     setAmount(e.target.value);
@@ -19,10 +21,72 @@ const Donation = () => {
     setPaymentMode(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here, e.g., send data to backend or process payment
-    console.log('Submitted:', { amount, paymentChannel, paymentMode });
+// Paymaya
+    // const mockCardDetails = {
+    //   cardType: 'VISA',
+    //   number: '4123450131004443',
+    //   expMonth: '12',
+    //   expYear: '25',
+    //   csc: '123'
+    //   passKey: 'mctest1'
+    // };
+
+// Paypal
+    // const mockCardDetails = {
+    //   email: 'sb-ivkma25348970@personal.example.com',
+    //   password: '8i5)<kWj',
+    // };
+
+
+    const openMockCredentialsPage = () => {
+      const newWindow = window.open('/mock-credentials', '_blank');
+      if (newWindow) newWindow.opener = null; // Ensures the new window is opened
+    };
+
+    if (paymentChannel === 'paymaya' && paymentMode === 'sandbox') {
+      try {
+        const response = await fetch('http://localhost:5000/api/checkout/paymaya', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ amount })
+        });
+        const data = await response.json();
+        if (data.redirectUrl) {
+          openMockCredentialsPage(); // Open mock credentials in a new tab
+          window.location.href = data.redirectUrl; // Redirect to the sandbox checkout page
+        } else {
+          console.error('No redirect URL found in response:', data);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    } else if (paymentChannel === 'paypal' && paymentMode === 'sandbox') {
+      try {
+        const response = await fetch('http://localhost:5000/api/checkout/paypal', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ amount })
+        });
+        const data = await response.json();
+        if (data.links) {
+          const approvalUrl = data.links.find(link => link.rel === 'approval_url').href;
+          openMockCredentialsPage(); // Open mock credentials in a new tab
+          window.location.href = approvalUrl; // Redirect to the sandbox checkout page
+        } else {
+          console.error('No approval URL found in response:', data);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    } else {
+      console.log('Payment channel not supported');
+    }
   };
 
   return (

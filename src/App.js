@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Error501Page from './components/Error501Page';
 import Error404Page from './components/Error404Page';
+import Error406Page from './components/Error406Page';
+import MockCredentialsPage from './pages/MockCredentialsPage';
+import SuccessPage from './components/SuccessPage';
 import LoginRegisterForm from './pages/LoginRegisterForm';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -63,6 +66,10 @@ const App = () => {
             />
             <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<Error404Page />} />
+            <Route path="/failure" element={<Error406Page />} />
+            <Route path="/success" element={<SuccessPage /> } />
+            <Route path="/mock-credentials" element={<MockCredentialsPage />} />
+
             {/* Uncomment and configure other routes as needed */}
             {/* <Route path="/blog" element={<Blog />} /> */}
             {/* <Route path="/blog/:id" element={<BlogDetail />} /> */}

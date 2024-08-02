@@ -12,6 +12,7 @@ const {
 } = require('./authMiddleware');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const { v4: uuidv4 } = require('uuid'); // Import the uuid library
 
 // Configure multer for file uploads
 const upload = multer({ dest: 'uploads/' });
@@ -520,7 +521,7 @@ app.post('/api/login', (req, res) => {
 
         // User authenticated, generate token
         const token = jwt.sign({ username }, process.env.JWT_SECRET, {
-          expiresIn: '1h',
+          expiresIn: '3h',
         });
         res.status(200).json({ token });
       });
@@ -783,6 +784,83 @@ app.delete('/api/messages/:messageId', authenticateAdminToken, (req, res) => {
       .json({ error: 'Unauthorized: Only admins can delete messages' });
   }
 });
+
+app.post('/api/checkout/paymaya', async (req, res) => {
+  const { amount } = req.body; // Expect card details from the request body
+  const requestReferenceNumber = uuidv4(); // Generate a unique requestReferenceNumber
+
+  const url = 'https://pg-sandbox.paymaya.com/checkout/v1/checkouts';
+  const options = {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      authorization: process.env.MAYA_AUTHORIZATION
+    },
+    body: JSON.stringify({
+      totalAmount: { value: amount, currency: 'PHP' },
+      redirectUrl: {
+        success: 'http://localhost:3000/success',
+        failure: 'http://localhost:3000/failure',
+        cancel: 'https://www.merchantsite.com/cancel'
+      },
+      items: [{totalAmount: {value: amount}, description: 'donation', name: 'donation_blog'}],
+      requestReferenceNumber,
+    })
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const json = await response.json();
+    res.json(json);
+    // TODO maybe save to MySQL in the future version
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+app.post('/api/checkout/paypal', async (req, res) => {
+  const { amount } = req.body;
+
+  const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
+  const url = 'https://api.sandbox.paypal.com/v1/payments/payment';
+
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Basic ${auth}`
+    },
+    body: JSON.stringify({
+      intent: 'sale',
+      redirect_urls: {
+        return_url: 'http://localhost:3000/success',
+        cancel_url: 'https://www.merchantsite.com/cancel'
+      },
+      payer: {
+        payment_method: 'paypal'
+      },
+      transactions: [{
+        amount: {
+          total: amount,
+          currency: 'PHP'
+        },
+        description: 'Donation'
+      }]
+    })
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const json = await response.json();
+    res.json(json);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
