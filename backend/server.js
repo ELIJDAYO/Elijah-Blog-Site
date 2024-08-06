@@ -59,17 +59,17 @@ connection.connect((err) => {
   console.log('Connected to MySQL database');
 });
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPDATE'], // Include UPDATE method
 };
 
 // Middleware to parse JSON requests
 app.use(cors(corsOptions));
 // DEV
-app.use(express.json());
+// app.use(express.json());
 // Deploy
 // Serve the static files from the React app
-// app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'build')));
 // app.options('/api/posts/update', cors(corsOptions));
 
 // User registration endpoint
@@ -1057,9 +1057,9 @@ app.post('/api/checkout/paymaya', async (req, res) => {
     body: JSON.stringify({
       totalAmount: { value: amount, currency: 'PHP' },
       redirectUrl: {
-        success: 'http://localhost:3000/success',
-        failure: 'http://localhost:3000/failure',
-        cancel: 'https://www.merchantsite.com/cancel',
+        success: `${process.env.CORS_ORIGIN}/success`,
+        failure: `${process.env.CORS_ORIGIN}/failure`,
+        cancel: `${process.env.CORS_ORIGIN}/failure`,
       },
       items: [
         {
@@ -1100,8 +1100,8 @@ app.post('/api/checkout/paypal', async (req, res) => {
     body: JSON.stringify({
       intent: 'sale',
       redirect_urls: {
-        return_url: 'http://localhost:3000/success',
-        cancel_url: 'https://www.merchantsite.com/cancel',
+        return_url: `${process.env.CORS_ORIGIN}/success`,
+        cancel_url: `${process.env.CORS_ORIGIN}/failure`,
       },
       payer: {
         payment_method: 'paypal',

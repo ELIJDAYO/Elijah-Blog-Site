@@ -29,6 +29,7 @@ const BlogEditPage = () => {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     if (selectedBlogEdit) {
@@ -109,7 +110,7 @@ const BlogEditPage = () => {
     }
     formDataToSubmit.append('tags', tags.join(','));
     try {
-      const response = await fetch('http://localhost:5000/api/posts/update', {
+      const response = await fetch(`${apiUrl}/api/posts/update`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('token')}`,

@@ -31,13 +31,14 @@ const Dashboard = ({ token }) => {
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const { updateBlog } = useBlogEditContext();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   const navigate = useNavigate();
   useEffect(() => {
     const authenticateUser = async () => {
       try {
         const last_token = token ? token : sessionStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/verify', {
+        const response = await fetch(`${apiUrl}/api/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -73,7 +74,7 @@ const Dashboard = ({ token }) => {
     const fetchBlogs = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/dashboard/blog?page=${activePageBlog}`
+          `${apiUrl}/api/dashboard/blog?page=${activePageBlog}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -96,7 +97,7 @@ const Dashboard = ({ token }) => {
     const fetchMessages = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/dashboard/inbox?page=${activePageMessage}`,
+          `${apiUrl}/api/dashboard/inbox?page=${activePageMessage}`,
           {
             headers: {
               Authorization: `Bearer ${sessionStorage.getItem('token')}`,
@@ -165,7 +166,7 @@ const Dashboard = ({ token }) => {
     formDataToSubmit.append('tags', tags.join(','));
 
     try {
-      const response = await fetch('http://localhost:5000/api/posts/create', {
+      const response = await fetch(`${apiUrl}/api/posts/create`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('token')}`,
@@ -251,7 +252,7 @@ const Dashboard = ({ token }) => {
     e.stopPropagation(); // Prevent event propagation
     try {
       const response = await fetch(
-        `http://localhost:5000/api/blogs/${blogId}`,
+        `${apiUrl}/api/blogs/${blogId}`,
         {
           method: 'DELETE',
           headers: {
@@ -287,7 +288,7 @@ const Dashboard = ({ token }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/messages/${messageId}`,
+        `${apiUrl}/api/messages/${messageId}`,
         {
           method: 'DELETE',
           headers: {

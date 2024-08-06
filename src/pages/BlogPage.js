@@ -9,11 +9,12 @@ const BlogPage = () => {
   const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/blog/${id}`);
+        const response = await fetch(`${apiUrl}/api/blog/${id}`);
         if (response.ok) {
           const data = await response.json();
           setBlog(data);
@@ -38,7 +39,7 @@ const BlogPage = () => {
   const handleOlderPostClick = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/blog/${id}/previous`
+        `${apiUrl}/api/blog/${id}/previous`
       );
       if (response.ok) {
         scrollToTop();
@@ -55,7 +56,7 @@ const BlogPage = () => {
   const handleNewerPostClick = async () => {
     try {
       scrollToTop();
-      const response = await fetch(`http://localhost:5000/api/blog/${id}/next`);
+      const response = await fetch(`${apiUrl}/api/blog/${id}/next`);
       if (response.ok) {
         const data = await response.json();
         navigate(`/blog/${data.blog_id}`);

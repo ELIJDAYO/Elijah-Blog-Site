@@ -8,6 +8,7 @@ const Donation = () => {
   const [paymentChannel, setPaymentChannel] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
   const navigate = useNavigate(); // Initialize useNavigate
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   const handleAmountChange = (e) => {
     setAmount(e.target.value);
@@ -47,7 +48,7 @@ const Donation = () => {
 
     if (paymentChannel === 'paymaya' && paymentMode === 'sandbox') {
       try {
-        const response = await fetch('http://localhost:5000/api/checkout/paymaya', {
+        const response = await fetch(`${apiUrl}/api/checkout/paymaya`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -66,7 +67,7 @@ const Donation = () => {
       }
     } else if (paymentChannel === 'paypal' && paymentMode === 'sandbox') {
       try {
-        const response = await fetch('http://localhost:5000/api/checkout/paypal', {
+        const response = await fetch(`${apiUrl}/api/checkout/paypal`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

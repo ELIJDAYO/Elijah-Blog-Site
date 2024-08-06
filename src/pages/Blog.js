@@ -37,12 +37,13 @@ const Blog = () => {
   });
   const blogsPerPage = 6;
   const uniqueId = localStorage.getItem('uniqueId') || generateDailyUuid();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/blog?page=${activePageBlog}&search=${searchQuery}`
+          `${apiUrl}/api/blog?page=${activePageBlog}&search=${searchQuery}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -57,10 +58,10 @@ const Blog = () => {
       }
     };
     fetchBlogs();
-  }, [activePageBlog, searchQuery]);
+  }, [activePageBlog, searchQuery, apiUrl]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/track-visit', {
+    fetch(`${apiUrl}//api/track-visit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -70,7 +71,7 @@ const Blog = () => {
       .then(response => response.json())
       .catch(error => console.error('Error tracking visit:', error));
 
-    fetch('http://localhost:5000/api/stats')
+    fetch(`${apiUrl}/api/stats`)
       .then(response => response.json())
       .then(data => {
         setUniqueUsers(data.unique_users);

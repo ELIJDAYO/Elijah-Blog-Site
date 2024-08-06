@@ -11,7 +11,7 @@ const LoginRegisterForm = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-
+  const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const LoginRegisterForm = () => {
     const username = formData.get('username');
     const password = formData.get('password');
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch(`${apiUrl}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ const LoginRegisterForm = () => {
     const username = formData.get('username');
     const password = formData.get('password');
     try {
-      const response = await fetch('http://localhost:5000/api/register', {
+      const response = await fetch(`${apiUrl}/api/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
