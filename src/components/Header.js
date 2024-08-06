@@ -43,7 +43,7 @@ const Header = ({ token, handleLogout }) => {
               </li>
               <li className="nav-item">
                 <NavLink
-                  to="/501"
+                  to="/blog"
                   className="nav-link"
                   activeclassname="active" //eslint-disable-next-line
                   style={{ textDecoration: 'none' }}

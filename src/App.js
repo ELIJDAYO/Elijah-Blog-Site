@@ -17,6 +17,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BlogEditPage from './pages/BlogEditPage';
 import Donation from './pages/Donation';
+import Blog from './pages/Blog';
+import BlogPage from './pages/BlogPage';
 import { BlogEditProvider } from './pages/BlogEditContext';
 
 const FontLink = () => (
@@ -69,9 +71,9 @@ const App = () => {
             <Route path="/failure" element={<Error406Page />} />
             <Route path="/success" element={<SuccessPage /> } />
             <Route path="/mock-credentials" element={<MockCredentialsPage />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPage />} />
 
-            {/* Uncomment and configure other routes as needed */}
-            {/* <Route path="/blog" element={<Blog />} /> */}
             {/* <Route path="/blog/:id" element={<BlogDetail />} /> */}
             (token &&        
               <Route path="/edit/:blogId" element={<BlogEditPage /> } setLoading={setLoading} />

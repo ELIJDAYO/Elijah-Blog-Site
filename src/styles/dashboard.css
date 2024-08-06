@@ -58,3 +58,23 @@ img{
 .dropdown-toggle{
   color: aliceblue;
 }
+
+.dropdown-menu {
+  background-color: #f8f9fa; /* Optional: Customize dropdown background color */
+  border: 1px solid #ddd;    /* Optional: Customize border */
+}
+
+.dropdown-item {
+  font-size: 0.8rem; /* Adjust the font size as needed */
+  padding: 0.5rem 1rem; /* Optional: Customize padding */
+  color: #333;          /* Optional: Customize text color */
+}
+
+.dropdown-item:hover {
+  background-color: #e9ecef; /* Optional: Customize hover background color */
+  cursor: pointer;
+}
+
+.create-container{
+  margin-left: 50vh;
+}

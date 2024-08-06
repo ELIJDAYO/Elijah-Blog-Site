@@ -74,7 +74,7 @@ button:hover:not(:disabled) {
 }
 
 .box-container {
-  background: rgba(255, 255, 255, 0.1); /* Slightly transparent background */
+  background: rgba(9, 96, 66, 0.82); /* Slightly transparent background */
   padding: 20px;
   border-radius: 10px;
 }

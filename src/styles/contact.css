@@ -9,6 +9,10 @@
     overflow-y: auto; /* Add vertical scrollbar if needed */
 }
 
+.form-container{
+    margin-left: 30px;
+}
+
 .contact-form {
     width: 100%;
     max-width: 600px !important;

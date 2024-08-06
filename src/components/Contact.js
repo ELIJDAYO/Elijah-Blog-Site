@@ -56,7 +56,7 @@ const Contact = () => {
     <div className="contact-form-container">
       <div className="contact-form my-5">
         <h2>Contact Us</h2>
-        <Form onSubmit={handleSubmit}>
+        <Form className='form-container' onSubmit={handleSubmit}>
           <Form.Group controlId="firstName">
             <Form.Label>First Name</Form.Label>
             <Form.Control

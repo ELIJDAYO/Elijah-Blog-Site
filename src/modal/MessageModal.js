@@ -14,7 +14,7 @@ const MessageModal = ({ message, onClose }) => {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
   return (
-    <Modal show={!!message} onHide={onClose} size="lg">
+    <Modal show={!!message} onHide={onClose} size="lg" className='text-black'>
       <Modal.Header closeButton>
         <Modal.Title>{message && message.source_title}</Modal.Title>
       </Modal.Header>

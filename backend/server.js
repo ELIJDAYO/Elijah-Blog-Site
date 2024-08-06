@@ -168,7 +168,8 @@ const deleteCloudinary = (currentMediaUrl) => {
 };
 const updatePost = (blog_id, title, description, media_url) => {
   return new Promise((resolve, reject) => {
-    const postSql =  'UPDATE blog SET title = ?, description = ?, media_url = ? WHERE blog_id = ?';
+    const postSql =
+      'UPDATE blog SET title = ?, description = ?, media_url = ? WHERE blog_id = ?';
     const postValues = [title, description, media_url, blog_id];
 
     connection.query(postSql, postValues, (err, result) => {
@@ -197,7 +198,7 @@ app.put(
         let currentMediaUrl = null;
         // Fetch the current media_url from the database
         const [mediaUrlResult] = await getMediaUrl(blog_id);
-        if(!media){
+        if (!media) {
           media = null;
         }
 
@@ -207,10 +208,7 @@ app.put(
         // Check the cases and handle accordingly
         if (media && media.path) {
           // Case 1: New media uploaded
-          if (
-            currentMediaUrl &&
-            currentMediaUrl.startsWith(cloudUrl)
-          ) {
+          if (currentMediaUrl && currentMediaUrl.startsWith(cloudUrl)) {
             // Delete the old image from Cloudinary
             await deleteCloudinary(currentMediaUrl);
           }
@@ -220,9 +218,9 @@ app.put(
         } else if (
           currentMediaUrl &&
           currentMediaUrl.startsWith(cloudUrl) &&
-          media==null
+          media == null
         ) {
-          console.log("Did it pass here?");
+          console.log('Did it pass here?');
           // Case 4: Media removed
           await deleteCloudinary(currentMediaUrl);
           mediaUrl = null;
@@ -589,6 +587,7 @@ const getTagsForBlog = (blogId) => {
     });
   });
 };
+
 app.get('/api/dashboard/blog', (req, res) => {
   const page = parseInt(req.query.page) || 1; // Current page number, default is 1
   const blogsPerPage = 6; // Number of blog posts per page
@@ -619,7 +618,7 @@ app.get('/api/dashboard/blog', (req, res) => {
           blog.tags = tags;
         }
 
-        console.log('Blog posts fetched successfully');
+        // console.log('Blog posts fetched successfully');
         // console.log(blogResults);
         const responseObject = {
           listBlogs: blogResults,
@@ -634,6 +633,260 @@ app.get('/api/dashboard/blog', (req, res) => {
     });
   });
 });
+
+// Endpoint to fetch blog posts
+// app.get('/api/blog', (req, res) => {
+//   const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+//   const blogsPerPage = 6; // Number of blog posts per page
+//   const offset = (page - 1) * blogsPerPage;
+
+//   const sqlCount = 'SELECT COUNT(*) AS total FROM blog'; // Query to count total number of blogs
+//   const sql = 'SELECT * FROM blog ORDER BY datetime DESC LIMIT ? OFFSET ?';
+
+//   connection.query(sqlCount, (err, countResult) => {
+//     if (err) {
+//       console.error('Error counting blog posts:', err);
+//       res.status(500).json({ error: 'Unable to fetch blog posts' });
+//       return;
+//     }
+
+//     const totalBlogs = countResult[0].total; // Total number of blogs
+
+//     connection.query(sql, [blogsPerPage, offset], async (err, blogResults) => {
+//       if (err) {
+//         console.error('Error querying blog table:', err);
+//         res.status(500).json({ error: 'Unable to fetch blog posts' });
+//         return;
+//       }
+
+//       try {
+//         for (const blog of blogResults) {
+//           const tags = await getTagsForBlog(blog.blog_id);
+//           blog.tags = tags;
+//         }
+
+//         const responseObject = {
+//           listBlogs: blogResults,
+//           countBlogs: totalBlogs,
+//         };
+//         res.status(200).json(responseObject);
+//       } catch (error) {
+//         console.error('Error fetching tags for blog posts:', error);
+//         res.status(500).json({ error: 'Unable to fetch tags for blog posts' });
+//       }
+//     });
+//   });
+// });
+
+// Endpoint to fetch blog posts
+app.get('/api/blog', (req, res) => {
+  const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+  const blogsPerPage = 6; // Number of blog posts per page
+  const offset = (page - 1) * blogsPerPage;
+  const searchQuery = req.query.search || '';
+
+  const sqlCount = `
+    SELECT COUNT(*) AS total 
+    FROM blog 
+    WHERE title LIKE ? OR description LIKE ? 
+  `;
+  const sql = `
+    SELECT * FROM blog 
+    WHERE title LIKE ? OR description LIKE ? 
+    ORDER BY datetime DESC 
+    LIMIT ? OFFSET ?
+  `;
+
+  const likeSearchQuery = `%${searchQuery}%`;
+
+  connection.query(
+    sqlCount,
+    [likeSearchQuery, likeSearchQuery],
+    (err, countResult) => {
+      if (err) {
+        console.error('Error counting blog posts:', err);
+        res.status(500).json({ error: 'Unable to fetch blog posts' });
+        return;
+      }
+
+      const totalBlogs = countResult[0].total; // Total number of blogs
+
+      connection.query(
+        sql,
+        [likeSearchQuery, likeSearchQuery, blogsPerPage, offset],
+        async (err, blogResults) => {
+          if (err) {
+            console.error('Error querying blog table:', err);
+            res.status(500).json({ error: 'Unable to fetch blog posts' });
+            return;
+          }
+
+          try {
+            // Attempt to fetch tags for each blog if tags table exists
+            const blogsWithTags = await Promise.all(
+              blogResults.map(async (blog) => {
+                try {
+                  const tags = await getTagsForBlog(blog.blog_id); // Fetch tags
+                  blog.tags = tags;
+                  return blog;
+                } catch (tagError) {
+                  console.error('Error fetching tags for blog:', tagError);
+                  blog.tags = []; // Assign empty array if error fetching tags
+                  return blog;
+                }
+              })
+            );
+
+            const responseObject = {
+              listBlogs: blogsWithTags,
+              countBlogs: totalBlogs,
+            };
+            res.status(200).json(responseObject);
+          } catch (error) {
+            console.error('Error processing blog results:', error);
+            res.status(500).json({ error: 'Unable to process blog results' });
+          }
+        }
+      );
+    }
+  );
+});
+
+app.get('/api/blog/:id', (req, res) => {
+  const blogId = req.params.id;
+
+  const sql = 'SELECT * FROM blog WHERE blog_id = ?';
+
+  connection.query(sql, [blogId], async (err, blogResults) => {
+    if (err) {
+      console.error('Error querying blog table:', err);
+      res.status(500).json({ error: 'Unable to fetch the blog post' });
+      return;
+    }
+
+    if (blogResults.length === 0) {
+      res.status(404).json({ error: 'Blog post not found' });
+      return;
+    }
+
+    try {
+      const blog = blogResults[0];
+      const tags = await getTagsForBlog(blog.blog_id);
+      blog.tags = tags;
+
+      res.status(200).json(blog);
+    } catch (error) {
+      console.error('Error fetching tags for the blog post:', error);
+      res.status(500).json({ error: 'Unable to fetch tags for the blog post' });
+    }
+  });
+});
+// Fetch the older (previous) blog post
+app.get('/api/blog/:id/previous', (req, res) => {
+  const blogId = req.params.id;
+
+  const sql = `
+    SELECT * FROM blog 
+    WHERE blog_id < ? 
+    ORDER BY blog_id DESC 
+    LIMIT 1
+  `;
+
+  connection.query(sql, [blogId], async (err, results) => {
+    if (err) {
+      console.error('Error fetching previous blog post:', err);
+      res.status(500).json({ error: 'Unable to fetch previous blog post' });
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).json({ error: 'No previous blog post found' });
+      return;
+    }
+
+    const blog = results[0];
+    blog.tags = await getTagsForBlog(blog.blog_id);
+
+    res.status(200).json(blog);
+  });
+});
+
+// Fetch the newer (next) blog post
+app.get('/api/blog/:id/next', (req, res) => {
+  const blogId = req.params.id;
+
+  const sql = `
+    SELECT * FROM blog 
+    WHERE blog_id > ? 
+    ORDER BY blog_id ASC 
+    LIMIT 1
+  `;
+
+  connection.query(sql, [blogId], async (err, results) => {
+    if (err) {
+      console.error('Error fetching next blog post:', err);
+      res.status(500).json({ error: 'Unable to fetch next blog post' });
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).json({ error: 'No next blog post found' });
+      return;
+    }
+
+    const blog = results[0];
+    blog.tags = await getTagsForBlog(blog.blog_id);
+
+    res.status(200).json(blog);
+  });
+});
+
+// Track Visit API
+app.post('/api/track-visit', (req, res) => {
+  const { uniqueId } = req.body;
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+  // Record visit
+  connection.query('INSERT INTO visits (unique_id, date) VALUES (?, ?) ON DUPLICATE KEY UPDATE date = ?', [uniqueId, today, today], (err) => {
+    if (err) {
+      console.error('Error recording visit:', err);
+      res.status(500).json({ error: 'Unable to record visit' });
+      return;
+    }
+
+    res.status(200).json({ message: 'Visit recorded' });
+  });
+});
+
+app.get('/api/stats', (req, res) => {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+  // Count unique users for today
+  connection.query('SELECT COUNT(DISTINCT unique_id) AS unique_users FROM visits WHERE DATE(date) = ?', [today], (err, uniqueUsersResult) => {
+    if (err) {
+      console.error('Error fetching unique users:', err);
+      res.status(500).json({ error: 'Unable to fetch unique users' });
+      return;
+    }
+
+    // Count total visits
+    connection.query('SELECT COUNT(*) AS total_visits FROM visits', (err, totalVisitsResult) => {
+      if (err) {
+        console.error('Error fetching total visits:', err);
+        res.status(500).json({ error: 'Unable to fetch total visits' });
+        return;
+      }
+
+      res.status(200).json({
+        unique_users: uniqueUsersResult[0].unique_users,
+        total_visits: totalVisitsResult[0].total_visits,
+      });
+    });
+  });
+});
+
+
+
 
 app.get('/api/dashboard/inbox', authenticateAdminToken, (req, res) => {
   const { username, isAdmin } = req.user;
@@ -795,18 +1048,24 @@ app.post('/api/checkout/paymaya', async (req, res) => {
     headers: {
       accept: 'application/json',
       'content-type': 'application/json',
-      authorization: process.env.MAYA_AUTHORIZATION
+      authorization: process.env.MAYA_AUTHORIZATION,
     },
     body: JSON.stringify({
       totalAmount: { value: amount, currency: 'PHP' },
       redirectUrl: {
         success: 'http://localhost:3000/success',
         failure: 'http://localhost:3000/failure',
-        cancel: 'https://www.merchantsite.com/cancel'
+        cancel: 'https://www.merchantsite.com/cancel',
       },
-      items: [{totalAmount: {value: amount}, description: 'donation', name: 'donation_blog'}],
+      items: [
+        {
+          totalAmount: { value: amount },
+          description: 'donation',
+          name: 'donation_blog',
+        },
+      ],
       requestReferenceNumber,
-    })
+    }),
   };
 
   try {
@@ -823,32 +1082,36 @@ app.post('/api/checkout/paymaya', async (req, res) => {
 app.post('/api/checkout/paypal', async (req, res) => {
   const { amount } = req.body;
 
-  const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
+  const auth = Buffer.from(
+    `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+  ).toString('base64');
   const url = 'https://api.sandbox.paypal.com/v1/payments/payment';
 
   const options = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Basic ${auth}`
+      Authorization: `Basic ${auth}`,
     },
     body: JSON.stringify({
       intent: 'sale',
       redirect_urls: {
         return_url: 'http://localhost:3000/success',
-        cancel_url: 'https://www.merchantsite.com/cancel'
+        cancel_url: 'https://www.merchantsite.com/cancel',
       },
       payer: {
-        payment_method: 'paypal'
+        payment_method: 'paypal',
       },
-      transactions: [{
-        amount: {
-          total: amount,
-          currency: 'PHP'
+      transactions: [
+        {
+          amount: {
+            total: amount,
+            currency: 'PHP',
+          },
+          description: 'Donation',
         },
-        description: 'Donation'
-      }]
-    })
+      ],
+    }),
   };
 
   try {

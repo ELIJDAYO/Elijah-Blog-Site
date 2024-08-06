@@ -84,8 +84,14 @@ const Donation = () => {
       } catch (error) {
         console.error('Error:', error);
       }
+    } 
+    else if (paymentChannel === 'paypal' && paymentMode === 'live') {
+      // Construct the PayPal URL
+      const paypalUrl = `https://paypal.me/buildrocket?amount=${amount}&currency=PHP`;
+      // Open the PayPal URL in a new tab or window
+      window.open(paypalUrl, '_blank');
     } else {
-      console.log('Payment channel not supported');
+      alert('Please select PayPal as payment channel and Live as payment mode.');
     }
   };
 

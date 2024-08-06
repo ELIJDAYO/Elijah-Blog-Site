@@ -14,7 +14,7 @@ const BlogModal = ({ blog, onClose }) => {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
   return (
-    <Modal show={!!blog} onHide={onClose} size="lg">
+    <Modal show={!!blog} onHide={onClose} size="lg" className='text-black'>
       <Modal.Header closeButton>
         <Modal.Title>{blog && blog.title}</Modal.Title>
       </Modal.Header>

@@ -1,0 +1,74 @@
+.blog-page {
+    max-width: 70vw;
+    margin: 0 auto;
+    padding: 20px;
+    background: #eaefffd4;
+    border: 1px solid #0b1989;
+    border-radius: 5px;
+    color: #333;
+    height: 90vh; /* Set container height to 90% of viewport height */
+    max-height: calc(100vh - 40px); /* Set max height to viewport height minus header and footer heights */
+    overflow-y: auto; /* Add vertical scrollbar if needed */
+    margin-top: 10vh;
+    margin-bottom: 10vh;
+  }
+  
+  .blog-page h1 {
+    margin-bottom: 20px;
+  }
+  
+  .blog-page p {
+    margin-bottom: 20px;
+  }
+  
+  .blog-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  
+  .tags {
+    margin-top: 20px;
+  }
+  
+  .tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 0.10rem;
+    background-color: #238199;
+    color: #b5b5b7;
+  }
+  
+  .no-tags {
+    color: #999;
+  }
+  
+
+  .blogpage-button {
+    display: flex;
+    align-items: center;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 50vh;
+  }
+  
+  .blogpage-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .blogpage-button svg {
+    margin-right: 8px;
+  }
+  
+  .navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 20px;
+  }

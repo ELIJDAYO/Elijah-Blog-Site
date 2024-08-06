@@ -119,73 +119,7 @@ const Dashboard = ({ token }) => {
     };
     fetchMessages();
   }, [activePageMessage]);
-  // Sample blog data
-  // const sampleBlogs = [
-  //   {
-  //     id: 1,
-  //     title: 'Blog 1',
-  //     description: 'Description of Blog 1',
-  //     tags: ['Tag1', 'Tag2'],
-  //   },
-  //   {
-  //     id: 2,
-  //     title: 'Blog 2',
-  //     description: 'Description of Blog 2',
-  //     tags: ['Tag1', 'Tag3'],
-  //   },
-  //   {
-  //     id: 3,
-  //     title: 'Blog 1',
-  //     description: 'Description of Blog 1',
-  //     tags: ['Tag1', 'Tag2'],
-  //   },
-  //   {
-  //     id: 4,
-  //     title: 'Blog 2',
-  //     description: 'Description of Blog 2',
-  //     tags: ['Tag1', 'Tag3'],
-  //   },
-  //   {
-  //     id: 5,
-  //     title: 'Blog 1',
-  //     description: 'Description of Blog 1',
-  //     tags: ['Tag1', 'Tag2'],
-  //   },
-  //   {
-  //     id: 6,
-  //     title: 'Blog 2',
-  //     description: 'Description of Blog 2',
-  //     tags: ['Tag1', 'Tag3'],
-  //   },
-  //   {
-  //     id: 7,
-  //     title: 'Blog 1',
-  //     description: 'Description of Blog 1',
-  //     tags: ['Tag1', 'Tag2'],
-  //   },
-  //   {
-  //     id: 8,
-  //     title: 'Blog 2',
-  //     description: 'Description of Blog 2',
-  //     tags: ['Tag1', 'Tag3'],
-  //   },
-  // ];
-  // // const messages_sample = [
-  // //   {
-  // //     id: 1,
-  // //     name: 'John Doe',
-  // //     description:
-  // //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-  // //     datetime: '2024-04-13T12:00:00',
-  // //   },
-  // //   {
-  // //     id: 2,
-  // //     name: 'Jane Smith',
-  // //     description:
-  // //       'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-  // //     datetime: '2024-04-12T09:30:00',
-  // //   },
-  // // ];
+  
   const handleTabSelect = (eventKey) => {
     sessionStorage.setItem('tab', eventKey);
   };
@@ -467,7 +401,7 @@ const Dashboard = ({ token }) => {
           </div>
         </Tab>
         <Tab eventKey="create" title="Create">
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSubmit} className='create-container'>
             <Form.Group controlId="title">
               <Form.Label className="mt-4">Title</Form.Label>
               <Form.Control

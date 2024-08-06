@@ -1,10 +1,9 @@
-/* tag.css */
 .tag {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    margin-right: 0.5rem;
-    border-radius: 0.25rem;
-    background-color: #9941a1; /* You can change the background color */
-    color: #cea4a4;
-  }
-  
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+  border-radius: 0.10rem;
+  background-color: #238199; /* You can change the background color */
+  color: #b5b5b7;
+  font-size: 0.75rem; /* Adjust the font size as needed */
+}

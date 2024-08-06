@@ -1,0 +1,73 @@
+/* blog.css */
+.blog-page-container {
+  padding: 20px;
+}
+
+.grid-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.main-content {
+  flex: 2;
+}
+
+.sidebar {
+  flex: 1;
+  padding: 20px;
+}
+
+.blog-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-item {
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.pagination-icons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination-icon {
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.analytics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.analytics-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.analytics-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: rgb(23, 29, 63);
+}
+
+.analytics-value {
+  font-size: 24px;
+  color: #333;
+}

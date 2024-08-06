@@ -1,16 +1,19 @@
 .login-register-container {
   display: flex;
-  justify-content: center; 
-  align-items: center; 
+  flex-direction: column; /* Maintain vertical alignment */
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Allow the width to adapt to content */
   height: 90vh;
   flex-grow: 1; /* Let the container grow to take remaining space */
-  height: 90vh; /* Set container height to 90% of viewport height */
+  flex-shrink: 0; /* Prevent shrinking */
   max-height: calc(100vh - 40px); /* Set max height to viewport height minus header and footer heights */
   overflow-y: auto; /* Add vertical scrollbar if needed */
+  margin: auto; /* Center horizontally */
 }
-
 .login-register-form {
-  max-width: 400px;
+  width: 100%; /* Allow width to adapt to max-width */
+  max-width: 450px; /* Set desired maximum width */
   padding: 20px;
   background: #0a261bde;
   border: 1px solid #ccc;
