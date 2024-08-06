@@ -66,10 +66,10 @@ const corsOptions = {
 // Middleware to parse JSON requests
 app.use(cors(corsOptions));
 // DEV
-// app.use(express.json());
+app.use(express.json());
 // Deploy
 // Serve the static files from the React app
-app.use(express.static(path.join(__dirname, 'build')));
+// app.use(express.static(path.join(__dirname, 'build')));
 // app.options('/api/posts/update', cors(corsOptions));
 
 // User registration endpoint

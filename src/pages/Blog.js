@@ -37,9 +37,12 @@ const Blog = () => {
   });
   const blogsPerPage = 6;
   const uniqueId = localStorage.getItem('uniqueId') || generateDailyUuid();
-  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
+    console.log(process.env)
+    const apiUrl = process.env.REACT_APP_API_URL;
+    console.log(apiUrl, uniqueId)
+
     const fetchBlogs = async () => {
       try {
         const response = await fetch(
@@ -58,10 +61,10 @@ const Blog = () => {
       }
     };
     fetchBlogs();
-  }, [activePageBlog, searchQuery, apiUrl]);
-
+  }, [activePageBlog, searchQuery]);
   useEffect(() => {
-    fetch(`${apiUrl}//api/track-visit`, {
+    const apiUrl = process.env.REACT_APP_API_URL;
+    fetch(`${apiUrl}/api/track-visit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
