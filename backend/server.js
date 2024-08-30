@@ -91,7 +91,8 @@ if (cluster.isMaster) {
   app.use(express.json());
   // Deploy
   // Serve the static files from the React app
-  // app.use(express.static(path.join(__dirname, 'build')));
+  app.use(express.static(path.join(__dirname, 'build')));
+  // app.use(express.static('build'))
   // app.options('/api/posts/update', cors(corsOptions));
 
   // User registration endpoint
