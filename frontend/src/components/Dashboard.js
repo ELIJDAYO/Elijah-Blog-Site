@@ -52,19 +52,21 @@ const Dashboard = ({ token }) => {
           // alert('Session expired');
           sessionStorage.removeItem('token');
           window.location.assign(window.location.href);
-          navigate('/login');
+          navigate("/")
+
         }
       } catch (error) {
         console.error('Error authenticating user:', error);
         toast.error('Invalid Entry');
         sessionStorage.removeItem('token');
-        navigate('/login');
+        navigate("/")
+
       }
     };
 
     if (!token && !sessionStorage.getItem('token')) {
       // Redirect to login page if token is not present
-      navigate('/login');
+      navigate("/")
     } else {
       // Authenticate the user
       authenticateUser();

@@ -46,7 +46,7 @@ const App = () => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('blogToEdit');
     setToken('');
-    window.location.href = '/login';
+    window.location.href = '/';
   };
   return (
     <Router>

@@ -39,7 +39,7 @@ const LoginRegisterForm = () => {
         const { token } = await response.json(); // Extract username from the response
         sessionStorage.setItem('token', token);
         setLoggedIn(true);
-        window.location.assign(window.location.href);
+        navigate("/")
       } else {
         console.error('Login failed:', response.statusText);
         toast.error('Login failed. Please check your username and password.');
