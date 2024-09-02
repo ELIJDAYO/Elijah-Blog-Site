@@ -64,7 +64,7 @@ const App = () => {
             )
             <Route
               path="/dashboard"
-              element={<Dashboard token={token} setLoading={setLoading} />}
+              element={<Dashboard setLoading={setLoading} />}
             />
             <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<Error404Page />} />

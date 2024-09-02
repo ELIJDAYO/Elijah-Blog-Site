@@ -11,7 +11,7 @@ import Tag from './Tag';
 import { useBlogEditContext } from '../pages/BlogEditContext';
 import LoadingScreen from '../components/LoadingScreen';
 
-const Dashboard = ({ token }) => {
+const Dashboard = () => {
   const [activePageBlog, setActivePageBlog] = useState(1);
   const [activePageMessage, setActivePageMessage] = useState(1);
   const blogsPerPage = 6;
@@ -37,7 +37,7 @@ const Dashboard = ({ token }) => {
   useEffect(() => {
     const authenticateUser = async () => {
       try {
-        const last_token = token ? token : sessionStorage.getItem('token');
+        const last_token = sessionStorage.getItem('token');
         const response = await fetch(`${apiUrl}/api/verify`, {
           method: 'POST',
           headers: {
@@ -62,14 +62,14 @@ const Dashboard = ({ token }) => {
       }
     };
 
-    if (!token && !sessionStorage.getItem('token')) {
+    if (!sessionStorage.getItem('token')) {
       // Redirect to login page if token is not present
       navigate('/login');
     } else {
       // Authenticate the user
       authenticateUser();
     }
-  }, [token, navigate, apiUrl]);
+  }, [navigate, apiUrl]);
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
