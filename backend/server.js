@@ -31,20 +31,6 @@ const fs = require('fs');
 const path = require('path');
 const uploadsFolder = 'uploads';
 
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPDATE'], // Include UPDATE method
-};
-
-// Middleware to parse JSON requests
-app.use(cors(corsOptions));
-app.use(express.json());
-// Deploy
-// Serve the static files from the React app
-app.use(express.static(path.join(__dirname, 'build')));
-// app.use(express.static('build'))
-// app.options('/api/posts/update', cors(corsOptions));
-
 // Function to delete the contents of the uploads folder
 const deleteUploadsFolderContents = () => {
   fs.readdir(uploadsFolder, (err, files) => {
@@ -104,6 +90,20 @@ if (cluster.isMaster) {
     } catch (err) {
       console.error('Error connecting to the database:', err);
     }
+
+    const corsOptions = {
+      origin: process.env.CORS_ORIGIN,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPDATE'], // Include UPDATE method
+    };
+    
+    // Middleware to parse JSON requests
+    app.use(cors(corsOptions));
+    app.use(express.json());
+    // Deploy
+    // Serve the static files from the React app
+    app.use(express.static(path.join(__dirname, 'build')));
+    // app.use(express.static('build'))
+    // app.options('/api/posts/update', cors(corsOptions));
 
     app.get('/api/blog', async (req, res) => {
       const page = parseInt(req.query.page) || 1;
