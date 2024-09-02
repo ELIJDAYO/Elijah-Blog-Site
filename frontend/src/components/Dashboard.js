@@ -38,7 +38,7 @@ const Dashboard = ({ token }) => {
     const authenticateUser = async () => {
       try {
         const last_token = token ? token : sessionStorage.getItem('token');
-        const response = await fetch(`${apiUrl}/api/verify`, {
+        const response = await fetch(`/api/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ const Dashboard = ({ token }) => {
     const fetchBlogs = async () => {
       try {
         const response = await fetch(
-          `${apiUrl}/api/dashboard/blog?page=${activePageBlog}`
+          `/api/dashboard/blog?page=${activePageBlog}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -103,7 +103,7 @@ const Dashboard = ({ token }) => {
       console.log("Sent to /api/dashboard/inbox")
       try {
         const response = await fetch(
-          `${apiUrl}/api/dashboard/inbox?page=${activePageMessage}`,
+          `/api/dashboard/inbox?page=${activePageMessage}`,
           {
             headers: {
               Authorization: `Bearer ${sessionStorage.getItem('token')}`,
@@ -172,7 +172,7 @@ const Dashboard = ({ token }) => {
     formDataToSubmit.append('tags', tags.join(','));
 
     try {
-      const response = await fetch(`${apiUrl}/api/posts/create`, {
+      const response = await fetch(`/api/posts/create`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('token')}`,
@@ -258,7 +258,7 @@ const Dashboard = ({ token }) => {
     e.stopPropagation(); // Prevent event propagation
     try {
       const response = await fetch(
-        `${apiUrl}/api/blogs/${blogId}`,
+        `/api/blogs/${blogId}`,
         {
           method: 'DELETE',
           headers: {
@@ -294,7 +294,7 @@ const Dashboard = ({ token }) => {
 
     try {
       const response = await fetch(
-        `${apiUrl}/api/messages/${messageId}`,
+        `/api/messages/${messageId}`,
         {
           method: 'DELETE',
           headers: {

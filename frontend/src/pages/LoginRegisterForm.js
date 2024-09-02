@@ -28,7 +28,7 @@ const LoginRegisterForm = () => {
     const username = formData.get('username');
     const password = formData.get('password');
     try {
-      const response = await fetch(`${apiUrl}/api/login`, {
+      const response = await fetch(`/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ const LoginRegisterForm = () => {
     const username = formData.get('username');
     const password = formData.get('password');
     try {
-      const response = await fetch(`${apiUrl}/api/register`, {
+      const response = await fetch(`/api/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

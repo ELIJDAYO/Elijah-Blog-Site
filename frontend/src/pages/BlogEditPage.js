@@ -110,7 +110,7 @@ const BlogEditPage = () => {
     }
     formDataToSubmit.append('tags', tags.join(','));
     try {
-      const response = await fetch(`${apiUrl}/api/posts/update`, {
+      const response = await fetch(`/api/posts/update`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('token')}`,

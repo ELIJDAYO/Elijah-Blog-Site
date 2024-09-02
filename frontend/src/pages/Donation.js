@@ -48,7 +48,7 @@ const Donation = () => {
 
     if (paymentChannel === 'paymaya' && paymentMode === 'sandbox') {
       try {
-        const response = await fetch(`${apiUrl}/api/checkout/paymaya`, {
+        const response = await fetch(`/api/checkout/paymaya`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ const Donation = () => {
       }
     } else if (paymentChannel === 'paypal' && paymentMode === 'sandbox') {
       try {
-        const response = await fetch(`${apiUrl}/api/checkout/paypal`, {
+        const response = await fetch(`/api/checkout/paypal`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

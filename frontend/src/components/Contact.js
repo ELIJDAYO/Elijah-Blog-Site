@@ -29,7 +29,7 @@ const Contact = () => {
     const message = formData.get('message');
 
     try {
-      const response = await fetch(`${apiUrl}/api/contact`, {
+      const response = await fetch(`/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
