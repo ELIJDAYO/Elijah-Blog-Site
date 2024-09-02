@@ -81,7 +81,7 @@ if (cluster.isMaster) {
   console.log(`Master ${process.pid} is running`);
 
   // Fork workers (create worker processes)
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 2; i++) {
     cluster.fork();
   }
 
