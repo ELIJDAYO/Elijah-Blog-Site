@@ -21,20 +21,20 @@ async function authenticateAdminToken(req, res, next) {
 
   // Check if the authorization header exists and has a valid format
   if (authHeader && authHeader.startsWith('Bearer ')) {
-    try {
-      // Extract the token from the header
-      const token = authHeader.substring(7); // Remove 'Bearer ' from the beginning
+    const token = authHeader.substring(7); // Remove 'Bearer ' from the beginning
 
+    try {
       // Verify the token
       jwt.verify(token, process.env.JWT_SECRET, async (err, decodedToken) => {
         if (err) {
-          // If token verification fails, send a 403 Forbidden response
           console.error('Token verification failed:', err);
-          return res.sendStatus(403);
+          return res.status(403).json({ error: 'Forbidden: Invalid token' });
         }
 
-        // If token is valid, extract user details from the decoded token
+        // Extract user details from the decoded token
         const { username } = decodedToken;
+
+        let connection;
 
         try {
           // Get a connection from the pool
@@ -47,7 +47,7 @@ async function authenticateAdminToken(req, res, next) {
           );
 
           if (results.length === 0) {
-            return res.status(403).json({ error: 'Forbidden' });
+            return res.status(403).json({ error: 'Forbidden: User not found' });
           }
 
           const isAdmin = results[0].isAdmin;
@@ -55,18 +55,17 @@ async function authenticateAdminToken(req, res, next) {
 
           // Proceed to the next middleware
           next();
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          res.status(500).json({ error: 'Internal server error' });
+        } catch (dbError) {
+          console.error('Error fetching user data:', dbError);
+          res.status(500).json({ error: 'Internal server error: Database query failed' });
         } finally {
           // Ensure the connection is always released, even in case of an error
           if (connection) connection.release();
         }
       });
     } catch (error) {
-      console.error('Error authenticating token:', error);
-      // If an error occurs, send a 500 Internal Server Error response
-      res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error verifying token:', error);
+      res.status(500).json({ error: 'Internal server error: Token verification failed' });
     }
   } else {
     // If authorization header is missing or has invalid format, send a 401 Unauthorized response

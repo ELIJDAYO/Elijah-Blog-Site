@@ -38,6 +38,13 @@ const Dashboard = () => {
     const authenticateUser = async () => {
       try {
         const last_token = sessionStorage.getItem('token');
+  
+        // If no token is found, redirect the user to the homepage or login page
+        if (!last_token) {
+          sessionStorage.removeItem('token');
+          navigate('/');  // Redirect to home page (or change to '/login' if needed)
+          return;
+        }
         const response = await fetch(`${apiUrl}/api/verify`, {
           method: 'POST',
           headers: {
@@ -45,13 +52,11 @@ const Dashboard = () => {
           },
           body: JSON.stringify({ last_token }),
         });
-
+  
         if (response.ok) {
           setLoading(false);
         } else {
-          // alert('Session expired');
           sessionStorage.removeItem('token');
-          window.location.reload();
           navigate('/login');
         }
       } catch (error) {
@@ -61,12 +66,11 @@ const Dashboard = () => {
         navigate('/login');
       }
     };
-
+  
+    // Check if a token exists, then authenticate the user
     if (!sessionStorage.getItem('token')) {
-      // Redirect to login page if token is not present
       navigate('/login');
     } else {
-      // Authenticate the user
       authenticateUser();
     }
   }, [navigate, apiUrl]);
@@ -100,32 +104,49 @@ const Dashboard = () => {
   }, [activePageBlog, apiUrl]);
   useEffect(() => {
     const fetchMessages = async () => {
-      console.log("Sent to /api/dashboard/inbox")
       try {
+        const token = sessionStorage.getItem('token');
+  
+        // If no token is found, redirect the user to the homepage or login page
+        if (!token) {
+          sessionStorage.removeItem('token');
+          navigate('/');  // Redirect to home page (or change to '/login' if needed)
+          return;
+        }
+  
         const response = await fetch(
           `${apiUrl}/api/dashboard/inbox?page=${activePageMessage}`,
           {
             headers: {
-              Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-            },
+              Authorization: `Bearer ${token}`,
+            }
           }
         );
+  
         if (response.ok) {
           const data = await response.json();
           setMessages(data.listMessages);
           setLoading(false);
+  
           // Extract total pages from response header
           const totalPages = Math.ceil(data.countMessage / messagesPerPage);
           setTotalPagesMessage(Math.max(totalPages, 1));
         } else {
           console.error('Error fetching messages:', response.statusText);
+          // Handle token expiration or invalid token
+          sessionStorage.removeItem('token');
+          navigate('/login');
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
+        sessionStorage.removeItem('token');
+        navigate('/login');
       }
     };
+  
     fetchMessages();
-  }, [activePageMessage, apiUrl]);
+  }, [activePageMessage, apiUrl, navigate]);
+  
   
   const handleTabSelect = (eventKey) => {
     sessionStorage.setItem('tab', eventKey);

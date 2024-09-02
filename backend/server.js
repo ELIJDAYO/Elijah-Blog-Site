@@ -835,13 +835,10 @@ if (cluster.isMaster) {
         const sqlMessages =
           'SELECT * FROM inbox ORDER BY created_at DESC LIMIT ? OFFSET ?';
 
-        console.log('/api/dashboard/inbox 1');
         try {
-          console.log('/api/dashboard/inbox 2');
           const connection = await pool.getConnection();
 
           try {
-            console.log('/api/dashboard/inbox 3');
             // Count total messages
             const [countResult] = await connection.query(sqlCount);
             const totalMessages = countResult[0].total;
