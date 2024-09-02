@@ -59,6 +59,20 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPDATE'], // Include UPDATE method
+};
+
+// Middleware to parse JSON requests
+app.use(cors(corsOptions));
+app.use(express.json());
+// Deploy
+// Serve the static files from the React app
+// app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static('build'))
+// app.options('/api/posts/update', cors(corsOptions));
+
 // Check if the current process is the master process
 if (cluster.isMaster) {
   // Get the number of CPU cores
@@ -91,20 +105,6 @@ if (cluster.isMaster) {
       console.error('Error connecting to the database:', err);
     }
 
-    const corsOptions = {
-      origin: process.env.CORS_ORIGIN,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPDATE'], // Include UPDATE method
-    };
-    
-    // Middleware to parse JSON requests
-    app.use(cors(corsOptions));
-    app.use(express.json());
-    // Deploy
-    // Serve the static files from the React app
-    app.use(express.static(path.join(__dirname, 'build')));
-    // app.use(express.static('build'))
-    // app.options('/api/posts/update', cors(corsOptions));
-
     app.get('/api/blog', async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const blogsPerPage = 6;
@@ -133,8 +133,7 @@ if (cluster.isMaster) {
           likeSearchQuery,
         ]);
         var totalBlogs = countResult[0].total;
-        if (totalBlogs === 0)
-          totalBlogs = 1;
+        if (totalBlogs === 0) totalBlogs = 1;
 
         // Query the blog posts
         const [blogResults] = await connection.query(sql, [

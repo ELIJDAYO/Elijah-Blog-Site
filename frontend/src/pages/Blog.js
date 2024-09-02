@@ -55,7 +55,6 @@ const Blog = () => {
           if (num_pages === 0){
             setTotalPages(1);
           }else{
-            console.log("Did it pass here?")
             setTotalPages(num_pages);
           }
           setLoading(false);
