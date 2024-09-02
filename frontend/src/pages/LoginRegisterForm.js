@@ -39,7 +39,7 @@ const LoginRegisterForm = () => {
         const { token } = await response.json(); // Extract username from the response
         sessionStorage.setItem('token', token);
         setLoggedIn(true);
-        window.location.reload();
+        window.location.assign(window.location.href);
       } else {
         console.error('Login failed:', response.statusText);
         toast.error('Login failed. Please check your username and password.');
@@ -67,7 +67,7 @@ const LoginRegisterForm = () => {
         // TODO
         // Redirect to login page after successful registration
         setLoggedIn(true);
-        window.location.reload();
+        window.location.assign(window.location.href);
       } else {
         console.error('Registration failed:', response.statusText);
       }

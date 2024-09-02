@@ -51,7 +51,7 @@ const Dashboard = ({ token }) => {
         } else {
           // alert('Session expired');
           sessionStorage.removeItem('token');
-          window.location.reload();
+          window.location.assign(window.location.href);
           navigate('/login');
         }
       } catch (error) {
