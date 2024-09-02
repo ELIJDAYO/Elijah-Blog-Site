@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const connection = require('./db');
+const pool = require('./db');
 
 // not in usse
 const authenticateUserToken = (req, res, next) => {
@@ -15,7 +15,7 @@ const authenticateUserToken = (req, res, next) => {
   });
 };
 
-function authenticateAdminToken(req, res, next) {
+async function authenticateAdminToken(req, res, next) {
   // Extract the authorization header
   const authHeader = req.headers['authorization'];
 
@@ -32,28 +32,36 @@ function authenticateAdminToken(req, res, next) {
           console.error('Token verification failed:', err);
           return res.sendStatus(403);
         }
+
         // If token is valid, extract user details from the decoded token
         const { username } = decodedToken;
 
-        // Query the database to get user role
-        connection.query(
-          'SELECT isAdmin FROM user WHERE unique_username = ?',
-          [username],
-          (err, results) => {
-            if (err) {
-              console.error('Error fetching user data:', err);
-              return res.status(500).json({ error: 'Internal server error' });
-            }
+        try {
+          // Get a connection from the pool
+          connection = await pool.getConnection();
 
-            if (results.length === 0) {
-              return res.status(403).json({ error: 'Forbidden' });
-            }
+          // Query the database to get user role
+          const [results] = await connection.query(
+            'SELECT isAdmin FROM user WHERE unique_username = ?',
+            [username]
+          );
 
-            const isAdmin = results[0].isAdmin;
-            req.user = { username, isAdmin };
-            next();
+          if (results.length === 0) {
+            return res.status(403).json({ error: 'Forbidden' });
           }
-        );
+
+          const isAdmin = results[0].isAdmin;
+          req.user = { username, isAdmin };
+
+          // Proceed to the next middleware
+          next();
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          res.status(500).json({ error: 'Internal server error' });
+        } finally {
+          // Ensure the connection is always released, even in case of an error
+          if (connection) connection.release();
+        }
       });
     } catch (error) {
       console.error('Error authenticating token:', error);

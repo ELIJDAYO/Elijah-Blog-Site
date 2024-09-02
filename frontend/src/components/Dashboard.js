@@ -69,7 +69,7 @@ const Dashboard = ({ token }) => {
       // Authenticate the user
       authenticateUser();
     }
-  }, [token, navigate]);
+  }, [token, navigate, apiUrl]);
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -83,7 +83,12 @@ const Dashboard = ({ token }) => {
           setLoading(false);
           // Extract total pages from response header
           const totalPages = Math.ceil(data.countBlogs / blogsPerPage);
-          setTotalPagesBlog(Math.max(totalPages, 1));
+          if (totalPages === 0){
+            setTotalPagesBlog(0);
+          }
+          else{
+            setTotalPagesBlog(Math.max(totalPages, 1));
+          }
         } else {
           console.error('Error fetching messages:', response.statusText);
         }
@@ -92,9 +97,10 @@ const Dashboard = ({ token }) => {
       }
     };
     fetchBlogs();
-  }, [activePageBlog]);
+  }, [activePageBlog, apiUrl]);
   useEffect(() => {
     const fetchMessages = async () => {
+      console.log("Sent to /api/dashboard/inbox")
       try {
         const response = await fetch(
           `${apiUrl}/api/dashboard/inbox?page=${activePageMessage}`,
@@ -119,7 +125,7 @@ const Dashboard = ({ token }) => {
       }
     };
     fetchMessages();
-  }, [activePageMessage]);
+  }, [activePageMessage, apiUrl]);
   
   const handleTabSelect = (eventKey) => {
     sessionStorage.setItem('tab', eventKey);

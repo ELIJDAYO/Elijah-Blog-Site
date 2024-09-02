@@ -64,8 +64,10 @@ const LoginRegisterForm = () => {
         body: JSON.stringify({ username, password }),
       });
       if (response.ok) {
+        // TODO
         // Redirect to login page after successful registration
         setLoggedIn(true);
+        window.location.reload();
       } else {
         console.error('Registration failed:', response.statusText);
       }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/blog.css';
+import "../styles/blog.css";
+// import '../styles/donation.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { Card } from 'react-bootstrap';
 import Tag from '../components/Tag';
@@ -39,9 +40,8 @@ const Blog = () => {
   const uniqueId = localStorage.getItem('uniqueId') || generateDailyUuid();
 
   useEffect(() => {
-    console.log(process.env)
     const apiUrl = process.env.REACT_APP_API_URL;
-    console.log(apiUrl, uniqueId)
+    // console.log(apiUrl, uniqueId)
 
     const fetchBlogs = async () => {
       try {
@@ -51,7 +51,13 @@ const Blog = () => {
         if (response.ok) {
           const data = await response.json();
           setBlogs(data.listBlogs);
-          setTotalPages(Math.ceil(data.countBlogs / blogsPerPage));
+          const num_pages = Math.ceil(data.countBlogs / blogsPerPage)
+          if (num_pages === 0){
+            setTotalPages(1);
+          }else{
+            console.log("Did it pass here?")
+            setTotalPages(num_pages);
+          }
           setLoading(false);
         } else {
           console.error('Error fetching blogs:', response.statusText);
