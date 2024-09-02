@@ -70,7 +70,7 @@ app.use(express.json());
 // Deploy
 // Serve the static files from the React app
 // app.use(express.static(path.join(__dirname, 'build')));
-app.use(express.static(path.join(__dirname, '../frontend/build')));
+app.use(express.static(path.resolve(__dirname, '../frontend/build')));
 
 // app.use(express.static('build'))
 // app.options('/api/posts/update', cors(corsOptions));
@@ -106,7 +106,7 @@ if (cluster.isMaster) {
     } catch (err) {
       console.error('Error connecting to the database:', err);
     }
-    
+
     app.get('/api/blog', async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const blogsPerPage = 6;
@@ -1177,11 +1177,11 @@ if (cluster.isMaster) {
         res.status(500).json({ error: 'Something went wrong' });
       }
     });
-  })();
 
-  // Start the server
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-  });
+    // Start the server
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  })();
 }
